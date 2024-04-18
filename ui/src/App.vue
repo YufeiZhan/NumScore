@@ -6,7 +6,9 @@
 
         <!-- Login / Signup -->
         <b-navbar-nav class="ms-auto">
-          <b-nav-item> <b-button v-b-modal.login-signup-modal variant="light">Log In/Sign Up</b-button> </b-nav-item>
+          <b-nav-item v-if="user?.name == null" href="/api/login"> <b-button v-b-modal.login-signup-modal variant="light">Log In/Sign Up</b-button> </b-nav-item>
+          <b-nav-item v-if="user?.name" @click="logout"><b-button v-b-modal.login-signup-modal variant="light">Log Out</b-button></b-nav-item>
+          <form method="POST" action="/api/logout" id="logoutForm" />
         </b-navbar-nav>
       </b-navbar>
     </div>
@@ -14,3 +16,20 @@
   <router-view />
 </template>
 
+<script setup lang="ts">
+  import { onMounted, ref, provide } from 'vue'
+
+  //make user accessible in environment without explicitly passing it through props to all childs
+  const user = ref({} as any)
+  provide("user", user) 
+
+  //use API to fetch the user information in the session
+  onMounted(async () => {
+    user.value = await (await fetch("/api/user")).json()
+    console.log(user.value)
+  })
+
+  function logout() {
+  ;(window.document.getElementById('logoutForm') as HTMLFormElement).submit()  
+  }
+</script>

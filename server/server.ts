@@ -2,6 +2,11 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
 import expressPinoLogger from 'express-pino-logger'
+import session from 'express-session'
+import cors from 'cors'
+import { Issuer, Strategy, generators } from 'openid-client'
+import passport from 'passport'
+import { gitlab } from "./secrets"
 import { Collection, Db, MongoClient, ObjectId } from 'mongodb'
 import { Customer, CustomerWithOrders, DraftOrder, Operator, OperatorWithOrders, Order, possibleIngredients } from './data'
 
@@ -23,7 +28,70 @@ app.use(bodyParser.urlencoded({ extended: true }))
 const logger = pino({transport: {target: 'pino-pretty'}})
 app.use(expressPinoLogger({ logger }))
 
+// set up CORS
+app.use(cors({
+  origin: "http://localhost:8131",
+  credentials: true,
+}))
+
+// set up session
+app.use(session({
+  secret: 'a just so-so secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false },
+
+  // the default store is memory-backed, so all sessions will be forgotten every time the server restarts
+  // uncomment the following to use a Mongo-backed store that will work with a load balancer
+  // store: MongoStore.create({
+  //   mongoUrl: 'mongodb://127.0.0.1:27017',
+  //   ttl: 14 * 24 * 60 * 60 // 14 days
+  // })
+}))
+declare module 'express-session' {
+  export interface SessionData {
+    credits?: number
+  }
+}
+
+app.use(passport.initialize())
+app.use(passport.session())
+passport.serializeUser((user, done) => {
+  console.log("serializeUser", user)
+  done(null, user) 
+})
+passport.deserializeUser((user, done) => {
+  console.log("deserializeUser", user)
+  done(null, user)
+})
+
 // app routes
+app.get('/api/login', passport.authenticate('oidc', {
+  successReturnToOrRedirect: "http://localhost:8130/"
+}))
+
+app.get('/api/login-callback', passport.authenticate('oidc', {
+  successReturnToOrRedirect: 'http://localhost:8130/',
+  failureRedirect: 'http://localhost:8130/',
+}))
+
+app.get('/api/user', (req, res) =>{
+  res.json(req.user || {})
+})
+
+app.post("/api/logout", (req, res, next) => {
+    req.logout((err) => {
+      if (err) {
+        return next(err)
+      }
+      res.redirect("/")
+    })
+})
+
+
+
+
+
 app.get("/api/possible-ingredients", (req, res) => {
   res.status(200).json(possibleIngredients)
 })
@@ -152,13 +220,37 @@ app.put("/api/order/:orderId", async (req, res) => {
   res.status(200).json({ status: "ok" })
 })
 
-// connect to Mongo
+
+// connect to Mongo and OpenID, and start the server
 client.connect().then(() => {
   console.log('Connected successfully to MongoDB')
   db = client.db("test")
   operators = db.collection('operators')
   orders = db.collection('orders')
   customers = db.collection('customers')
+
+  // why is this bracket needed?
+  {
+    Issuer.discover("https://coursework.cs.duke.edu/").then(issuer => {
+      const client = new issuer.Client(gitlab)
+
+      const params = {
+        scope: 'openid profile email', //openid has to be one of it
+        nonce: generators.nonce(),
+        redirect_uri: 'http://localhost:8131/api/login-callback', 
+        state: generators.state(),
+      }
+
+      function verify(tokenSet: any, userInfo: any, done: (error: any, user: any) => void) {
+        console.log('userInfo', userInfo)
+        console.log('tokenSet', tokenSet)
+        return done(null, userInfo)
+      }
+
+      passport.use('oidc', new Strategy({ client, params }, verify))
+
+    })
+  }
 
   // start server
   app.listen(port, () => {
