@@ -42,7 +42,7 @@ export interface User {
   name: string
   email: string
   password: string
-  scores: [ScoreRolePair] // pair of scores that users are part of
+  scores: ScoreRolePair[] // pair of scores that users are part of
 }
 
 export interface Score {
@@ -66,11 +66,11 @@ export interface ScoreRolePair {
 
 export interface note {
   number: 0 |1 |2 |3 |4 |5 |6 |7
-  duration: 1 | 0.5 | 0.25 | 0.125 | 0.0625 | 0.03125 | 0.015625 | 0.0078125
+  duration: 1 | 0.5 | 0.25 | 0.125 | 0.0625 | 0.03125 | 0.015625 // 1 - 1/64
   pitch: 0 | 1 | 2 | 3 | -1 | -2 | -3
 }
 
-const user1 : User = {
+export const user1 : User = {
   _id: '1',
   name: 'Alice',
   email: 'alice@duke.edu',
@@ -78,7 +78,7 @@ const user1 : User = {
   scores: [{scoreId: '1', role: 'Creator'}]
 }
 
-const aliceScore1 : Score = {
+export const aliceScore1 : Score = {
   _id: '1',
   title: 'Alphabet Song',
   author: 'Alice',
