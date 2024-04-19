@@ -4,13 +4,14 @@ import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import './style.css';
+import './static/style.css';
 
 
 import App from './App.vue'
 import CustomerScreen from './views/CustomerScreen.vue'
 import OperatorScreen from './views/OperatorScreen.vue'
-import StatusScreen from './views/StatusScreen.vue'
+import IndexPage from './views/IndexPage.vue'
+import HomePage from './views/HomePage.vue'
 
 const routes = [
   {
@@ -25,7 +26,11 @@ const routes = [
   },
   {
     path: "/",
-    component: StatusScreen,
+    component: IndexPage,
+  },
+  {
+    path: "/home",
+    component: HomePage,
   }
 ]
 

@@ -6,7 +6,11 @@
 
         <!-- Login / Signup -->
         <b-navbar-nav class="ms-auto">
-          <b-nav-item v-if="user?.name == null" href="/api/login"> <b-button v-b-modal.login-signup-modal variant="light">Log In/Sign Up</b-button> </b-nav-item>
+          <div class="me-2 mt-3">
+            <span v-if="user?.name"> Welcome, {{ user.preferred_username }} </span>
+            <span v-else> Please Log In -> </span>
+          </div>
+          <b-nav-item v-if="user?.name == null" href="/api/login"> <b-button v-b-modal.login-signup-modal variant="light">Log In Through Gitlab</b-button> </b-nav-item>
           <b-nav-item v-if="user?.name" @click="logout"><b-button v-b-modal.login-signup-modal variant="light">Log Out</b-button></b-nav-item>
           <form method="POST" action="/api/logout" id="logoutForm" />
         </b-navbar-nav>

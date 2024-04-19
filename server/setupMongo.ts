@@ -6,25 +6,13 @@ const url = 'mongodb://127.0.0.1:27017'
 const client = new MongoClient(url)
 
 const operators: Operator[] = [
-  {
-    _id: "jim",
-    name: "Jim",
-  },
-  {
-    _id: "mary",
-    name: "Mary",
-  },
+  {_id: "jim",name: "Jim",},
+  {_id: "mary",name: "Mary",},
 ]
 
 const customers: Customer[] = [
-  {
-    _id: "alice",
-    name: "Alice",
-  },
-  {
-    _id: "bob",
-    name: "Bob",
-  },
+  {_id: "alice",name: "Alice",},
+  {_id: "bob",name: "Bob",},
 ]
 
 async function main() {

@@ -71,7 +71,7 @@ app.get('/api/login', passport.authenticate('oidc', {
 }))
 
 app.get('/api/login-callback', passport.authenticate('oidc', {
-  successReturnToOrRedirect: 'http://localhost:8130/',
+  successReturnToOrRedirect: 'http://localhost:8130/home',
   failureRedirect: 'http://localhost:8130/',
 }))
 
