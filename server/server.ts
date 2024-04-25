@@ -19,6 +19,7 @@ const client = new MongoClient(url)
 let db: Db
 let scores: Collection<Score> // a collection of db
 let users: Collection<User> // a collection of db
+let nextUserId : number = 0 // actively tracking the 
 
 // set up Express, body parsing for both JSON and URL encoded
 const app = express()
@@ -93,9 +94,9 @@ app.post("/api/logout", (req, res, next) => {
 
 // Get all scores under the specified user
 app.get("/api/scores", async (req, res) => {
-    const user = req.user as any
-    console.log("Retreiving user for /api/scores api", user)
-    const name = user.preferred_username
+    const OIDCuser = req.user as any
+    console.log("Retreiving user for /api/scores api", OIDCuser)
+    const name = OIDCuser.preferred_username
     console.log("Name of the OICD user is", name)
     if (!name) {
       res.status(404)
@@ -117,9 +118,20 @@ app.get("/api/scores", async (req, res) => {
         console.log(userScores)
         res.status(200).json(userScores || [])
       } else{ // If user not in database yet, add user to the database
-        const response = await fetch("/api/user",{method:'POST',
-                                                  headers: {'Content-Type': 'application/json'}})
-        res.status(response.status)
+        console.log("Add user to the database using Gitlab's credentials")
+        const newUser : User = { _id: OIDCuser.sub,
+                                name: OIDCuser.preferred_username,
+                                email: OIDCuser.email,
+                                password: null,
+                                scores: []}
+        try {
+          users.insertOne(newUser)
+          nextUserId += 1
+          res.status(200)
+        } catch (e) {
+          console.error("Error creating user:", e)
+          res.status(500)
+        }
       }
     }
 })
@@ -131,23 +143,6 @@ app.get("/api/score/:scoreId", async(req, res) => {
   } else {
     return res.status(404)
   }
-})
-
-// Assumed that the user can only be created when first logging in using Giltab OIDC
-app.post("/api/user",(req,res) => {
-    const OIDCUser = req.user as any
-    const newUser : User = { _id: OIDCUser.sub,
-                            name: OIDCUser.nickname,
-                            email: OIDCUser.email,
-                            password: null,
-                            scores: []}
-    try {
-      users.insertOne(newUser)
-      res.status(200)
-    } catch (e) {
-      console.error("Error creating user:", e)
-      res.status(500)
-    }
 })
 
 // app.get("/api/possible-ingredients", (req, res) => {
