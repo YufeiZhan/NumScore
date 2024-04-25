@@ -1,3 +1,23 @@
 .bg-app{
     background-color: #799362;
 }
+.note{
+    font-size: 30px;
+    margin-left: 5px;
+    margin-right: 5px;
+    line-height: 1;
+    text-align: center;
+    display: inline-block;
+}
+
+.note-deco{
+    line-height: 0.14;
+    display:flex; 
+    justify-content: center;
+}
+
+.hidden-note-deco{
+    line-height: 0.14;
+    visibility:hidden; 
+    justify-content: center;
+}

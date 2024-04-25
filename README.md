@@ -18,8 +18,8 @@
 - [] Tech stack: responsive Vue.router frontend, Node backend, MongoDB database
 - [x] Use OIDC for user login/authentication
 - [] A form (besides login) showing at least 4 fields
-- [] Socket-IO-based central server
-- [] Supports multiple authenticated users
+- [] Socket-IO-based central server (Concurrency handling)
+- [] Supports multiple authenticated users (access-level wise)
 - [] Basic E2E test suite
 - [] Run on Kubernetes
 - [] Extra 1: CI/CD pipeline
