@@ -31,6 +31,8 @@
             </div >
         </div>
 
+        <!-- Toolbox -->
+        <b-avatar class="avatar" size="lg"><b-icon-box-seam variant="light" scale="1.5"></b-icon-box-seam></b-avatar>
     </div>
 </template>
 
