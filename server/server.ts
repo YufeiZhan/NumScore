@@ -95,25 +95,29 @@ app.post("/api/logout", (req, res, next) => {
 app.get("/api/scores", async (req, res) => {
     const user = req.user as any
     console.log("Retreiving user for /api/scores api", user)
-    const name = user.preferred_username //TODO: enfore unique constraint on name
-    console.log("Name of the user is", name)
+    const name = user.preferred_username
+    console.log("Name of the OICD user is", name)
     if (!name) {
       res.status(404)
     } else {
-      const user : User = await users.findOne({ name })
-      console.log(user)
-      const scoresInfo : ScoreRolePair[] = user.scores
-      const userScores : Score[] = []
-      for (const scoreRolePair of scoresInfo){
-        const _id = scoreRolePair.scoreId
-        const role = scoreRolePair.role
-  
-        const score : Score = await scores.findOne({ _id })
-        score.role = role
-        userScores.push(score)
-      }
-      console.log(userScores)
-      res.status(200).json(userScores || [])
+      const user : User | null = await users.findOne({ name })
+      console.log("The user retreived from database using the OICD username:",user)
+
+      if (user) {
+        const scoresInfo : ScoreRolePair[] = user.scores
+        const userScores : Score[] = []
+        for (const scoreRolePair of scoresInfo){
+          const _id = scoreRolePair.scoreId
+          const role = scoreRolePair.role
+    
+          const score : Score = await scores.findOne({ _id })
+          score.role = role
+          userScores.push(score)
+        }
+        console.log(userScores)
+        res.status(200).json(userScores || [])
+      } 
+      // if user not in database yet, add user to the database
     }
 })
 
