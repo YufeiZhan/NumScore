@@ -29,8 +29,10 @@
 
   //use API to fetch the user information in the session
   onMounted(async () => {
+    console.log("Accessing index page...")
+    console.log("Fetching user information from server through /api/user api")
     user.value = await (await fetch("/api/user")).json()
-    console.log(user.value)
+    console.log("The fetched user info is", user.value)
   })
 
   function logout() {

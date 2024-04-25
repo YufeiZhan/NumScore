@@ -55,6 +55,7 @@ export interface Score {
   tempo: number
   time: Date
   notes: note[]
+  role?: Role //Optional
 }
 
 export type Role = 'Creator' | 'Editor' | 'Viewer' | null
@@ -72,7 +73,7 @@ export interface note {
 
 export const user1 : User = {
   _id: '1',
-  name: 'Alice',
+  name: 'yz858',
   email: 'alice@duke.edu',
   password: '123123',
   scores: [{scoreId: '1', role: 'Creator'}]

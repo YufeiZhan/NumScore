@@ -4,7 +4,8 @@ import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import './static/style.css';
+import 'bootstrap-vue/dist/bootstrap-vue-icons.min.css'
+import './assets/style.css';
 
 
 import App from './App.vue'
