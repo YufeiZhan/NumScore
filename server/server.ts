@@ -98,7 +98,7 @@ app.get("/api/scores", async (req, res) => {
     const name = user.preferred_username //TODO: enfore unique constraint on name
     console.log("Name of the user is", name)
     if (!name) {
-      res.status(200).json([])
+      res.status(404)
     } else {
       const user : User = await users.findOne({ name })
       console.log(user)
@@ -117,7 +117,14 @@ app.get("/api/scores", async (req, res) => {
     }
 })
 
-
+app.get("/api/score/:scoreId", async(req, res) => {
+  const score : Score | null = await scores.findOne({ _id: req.params.scoreId })
+  if (score) {
+    return res.status(200).json(score)
+  } else {
+    return res.status(404)
+  }
+})
 
 
 

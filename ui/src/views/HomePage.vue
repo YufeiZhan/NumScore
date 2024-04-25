@@ -39,8 +39,8 @@
             }
             scores.value = await response.json();
         } catch (error) {
-            console.error('Failed to fetch operator:', error);
-            alert('An error occurred while fetching the data.');
+            console.error('Failed to fetch scores:', error);
+            alert('An error occurred while fetching the scores data.');
         }
     }
   }
