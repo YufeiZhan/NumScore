@@ -32,7 +32,12 @@
         </div>
 
         <!-- Toolbox -->
-        <b-avatar class="avatar" size="lg"><b-icon-box-seam variant="light" scale="1.5"></b-icon-box-seam></b-avatar>
+        <div style="position: fixed; right: 10px; bottom: 0px;">
+            <b-avatar v-if="showIcons" class="avatar" size="lg"><b-icon-share variant="light" scale="1.4"></b-icon-share></b-avatar>
+            <b-avatar v-if="showIcons" class="avatar" size="lg"><b-icon-download variant="light" scale="1.5"></b-icon-download></b-avatar>
+            <b-avatar v-if="showIcons" class="avatar" size="lg"><b-icon-question variant="light" scale="2"></b-icon-question></b-avatar>
+            <b-avatar class="avatar" size="lg"><b-icon-box-seam variant="light" scale="1.5" @click="toolboxOnClick"></b-icon-box-seam></b-avatar>
+        </div>
     </div>
 </template>
 
@@ -42,6 +47,7 @@
     import Note from '../components/Note.vue'
 
     const score : Ref<Score> | Ref<undefined>= ref(undefined)
+    const showIcons : Ref<boolean> = ref(true)
 
     // props
     interface Props {
@@ -108,4 +114,7 @@ function durationTill(index : number) : number {
     return total;
 }
 
+function toolboxOnClick(){
+    showIcons.value = !showIcons.value
+}
 </script>
