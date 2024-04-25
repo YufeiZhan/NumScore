@@ -80,7 +80,7 @@ app.get('/api/login-callback', passport.authenticate('oidc', {
 app.get('/api/user', (req, res) => {
   console.log("testtest" + req.user)
   res.json(req.user || {})
-})
+}) // TODO
 
 app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
@@ -116,8 +116,11 @@ app.get("/api/scores", async (req, res) => {
         }
         console.log(userScores)
         res.status(200).json(userScores || [])
-      } 
-      // if user not in database yet, add user to the database
+      } else{ // If user not in database yet, add user to the database
+        const response = await fetch("/api/user",{method:'POST',
+                                                  headers: {'Content-Type': 'application/json'}})
+        res.status(response.status)
+      }
     }
 })
 
@@ -130,10 +133,22 @@ app.get("/api/score/:scoreId", async(req, res) => {
   }
 })
 
-
-
-
-
+// Assumed that the user can only be created when first logging in using Giltab OIDC
+app.post("/api/user",(req,res) => {
+    const OIDCUser = req.user as any
+    const newUser : User = { _id: OIDCUser.sub,
+                            name: OIDCUser.nickname,
+                            email: OIDCUser.email,
+                            password: null,
+                            scores: []}
+    try {
+      users.insertOne(newUser)
+      res.status(200)
+    } catch (e) {
+      console.error("Error creating user:", e)
+      res.status(500)
+    }
+})
 
 // app.get("/api/possible-ingredients", (req, res) => {
 //   res.status(200).json(possibleIngredients)
