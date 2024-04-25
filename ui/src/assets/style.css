@@ -22,9 +22,15 @@
     justify-content: center;
 }
 
-.avatar{
+.avatar-toolbox{
     background-color: #799362; 
     border: 2px solid black;
     margin-bottom: 10px;
     display: block;
+}
+
+.avatar-user{
+    background-color: #799362; 
+    border: 2px solid black;
+    margin-left: 10px;
 }

@@ -33,10 +33,15 @@
 
         <!-- Toolbox -->
         <div style="position: fixed; right: 10px; bottom: 0px;">
-            <b-avatar v-if="showIcons" class="avatar" size="lg"><b-icon-share variant="light" scale="1.4"></b-icon-share></b-avatar>
-            <b-avatar v-if="showIcons" class="avatar" size="lg"><b-icon-download variant="light" scale="1.5"></b-icon-download></b-avatar>
-            <b-avatar v-if="showIcons" class="avatar" size="lg"><b-icon-question variant="light" scale="2"></b-icon-question></b-avatar>
-            <b-avatar class="avatar" size="lg"><b-icon-box-seam variant="light" scale="1.5" @click="toolboxOnClick"></b-icon-box-seam></b-avatar>
+            <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-share variant="light" scale="1.4"></b-icon-share></b-avatar>
+            <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-download variant="light" scale="1.5"></b-icon-download></b-avatar>
+            <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-question variant="light" scale="2"></b-icon-question></b-avatar>
+            <b-avatar class="avatar-toolbox" size="lg"><b-icon-box-seam variant="light" scale="1.5" @click="toolboxOnClick"></b-icon-box-seam></b-avatar>
+        </div>
+
+        <!-- User Icons -->
+        <div style="position: fixed; left: 0px; bottom: 10px;">
+            <b-avatar :text="user.preferred_username.slice(0,2)" class="avatar-user"></b-avatar>
         </div>
     </div>
 </template>
@@ -48,6 +53,7 @@
 
     const score : Ref<Score> | Ref<undefined>= ref(undefined)
     const showIcons : Ref<boolean> = ref(true)
+    const user: Ref<any> = inject("user")!
 
     // props
     interface Props {
