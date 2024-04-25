@@ -19,7 +19,8 @@ const client = new MongoClient(url)
 let db: Db
 let scores: Collection<Score> // a collection of db
 let users: Collection<User> // a collection of db
-let nextUserId : number = 0 // actively tracking the 
+let nextUserId: number = 0 // tracking user id
+let nextScoreId: number = 0 // tracking score id
 
 // set up Express, body parsing for both JSON and URL encoded
 const app = express()
@@ -28,12 +29,12 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 // set up Pino logging
-const logger = pino({transport: {target: 'pino-pretty'}})
+const logger = pino({ transport: { target: 'pino-pretty' } })
 app.use(expressPinoLogger({ logger }))
 
-// set up CORS
+// set up CORS - can do multiple origins 
 app.use(cors({
-  origin: "http://localhost:8131",
+  origin: ["http://localhost:8130",],
   credentials: true,
 }))
 
@@ -61,7 +62,7 @@ app.use(passport.initialize())
 app.use(passport.session())
 passport.serializeUser((user, done) => {
   console.log("serializeUser", user)
-  done(null, user) 
+  done(null, user)
 })
 passport.deserializeUser((user, done) => {
   console.log("deserializeUser", user)
@@ -84,66 +85,101 @@ app.get('/api/user', (req, res) => {
 }) // TODO
 
 app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) {
-        return next(err)
-      }
-      res.redirect("/")
-    })
+  req.logout((err) => {
+    if (err) {
+      return next(err)
+    }
+    res.redirect("/")
+  })
 })
 
 // Get all scores under the specified user
 app.get("/api/scores", async (req, res) => {
-    const OIDCuser = req.user as any
-    console.log("Retreiving user for /api/scores api", OIDCuser)
-    const name = OIDCuser.preferred_username
-    console.log("Name of the OICD user is", name)
-    if (!name) {
-      res.status(404)
-    } else {
-      const user : User | null = await users.findOne({ name })
-      console.log("The user retreived from database using the OICD username:",user)
+  const OIDCuser = req.user as any
+  console.log("Retreiving user for /api/scores api", OIDCuser)
+  const name = OIDCuser.preferred_username
+  console.log("Name of the OICD user is", name)
+  if (!name) {
+    res.status(404)
+  } else {
+    const user: User | null = await users.findOne({ name })
+    console.log("The user retreived from database using the OICD username:", user)
 
-      if (user) {
-        const scoresInfo : ScoreRolePair[] = user.scores
-        const userScores : Score[] = []
-        for (const scoreRolePair of scoresInfo){
-          const _id = scoreRolePair.scoreId
-          const role = scoreRolePair.role
-    
-          const score : Score = await scores.findOne({ _id })
-          score.role = role
-          userScores.push(score)
-        }
-        console.log(userScores)
-        res.status(200).json(userScores || [])
-      } else{ // If user not in database yet, add user to the database
-        console.log("Add user to the database using Gitlab's credentials")
-        const newUser : User = { _id: OIDCuser.sub,
-                                name: OIDCuser.preferred_username,
-                                email: OIDCuser.email,
-                                password: null,
-                                scores: []}
-        try {
-          users.insertOne(newUser)
-          nextUserId += 1
-          res.status(200)
-        } catch (e) {
-          console.error("Error creating user:", e)
-          res.status(500)
-        }
+    if (user) {
+      const scoresInfo: ScoreRolePair[] = user.scores
+      const userScores: Score[] = []
+      for (const scoreRolePair of scoresInfo) {
+        const _id = scoreRolePair.scoreId
+
+        const score: Score = await scores.findOne({ _id })
+        userScores.push(score)
+      }
+      console.log(userScores)
+      res.status(200).json(userScores || [])
+    } else { // If user not in database yet, add user to the database
+      console.log("Add user to the database using Gitlab's credentials")
+      const newUser: User = {
+        _id: OIDCuser.sub,
+        name: OIDCuser.preferred_username,
+        email: OIDCuser.email,
+        password: null,
+        scores: []
+      }
+      try {
+        users.insertOne(newUser)
+        nextUserId += 1
+        res.status(200)
+      } catch (e) {
+        console.error("Error creating user:", e)
+        res.status(500)
       }
     }
+  }
 })
 
-app.get("/api/score/:scoreId", async(req, res) => {
-  const score : Score | null = await scores.findOne({ _id: req.params.scoreId })
+app.get("/api/score/new", async (req, res) => {
+  console.log("Creating new score at the backend...")
+  const newScore: Score = {
+    _id: String(nextScoreId),
+    title: null, author: (req.user as any).preferred_username,
+    key: null, timeSignatureTop: null, timeSignatureBase: null,
+    tempo: null, time: new Date(), notes: []
+  }
+  try {
+    scores.insertOne(newScore)
+    
+    await users.updateOne(
+      {
+        name: (req.user as any).preferred_username,
+      },
+      {
+        $push: {
+          scores: {scoreId: String(nextScoreId), role: 'Creator'}
+        }
+      }
+    )
+    nextUserId += 1
+    res.status(200)
+  } catch (e) {
+    console.error("Error creating new score:", e)
+    res.status(500)
+  }
+})
+
+app.get("/api/score/:scoreId", async (req, res) => {
+  const score: Score | null = await scores.findOne({ _id: req.params.scoreId })
   if (score) {
     return res.status(200).json(score)
   } else {
     return res.status(404)
   }
 })
+
+
+
+
+
+
 
 // app.get("/api/possible-ingredients", (req, res) => {
 //   res.status(200).json(possibleIngredients)
@@ -255,7 +291,7 @@ app.get("/api/score/:scoreId", async(req, res) => {
 //       res.status(400).json({ error: "invalid state" })
 //       return
 //   }
-  
+
 //   const result = await orders.updateOne(
 //     condition,
 //     {
@@ -289,7 +325,7 @@ client.connect().then(() => {
       const params = {
         scope: 'openid profile email', //openid has to be one of it
         nonce: generators.nonce(),
-        redirect_uri: 'http://localhost:8131/api/login-callback', 
+        redirect_uri: 'http://localhost:8131/api/login-callback',
         state: generators.state(),
       }
 

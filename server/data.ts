@@ -47,12 +47,12 @@ export interface User {
 
 export interface Score {
   _id: string // set to be {title}-{user._id} format to ensure uniqueness
-  title: string
-  author: string
-  key: 'C'|'D'|'E'|'F'|'G'|'A'|'B'|'C#'|'D#'|'#F'|'#G'|'A#'|'Db'|'Eb'|'Gb'|'Ab'|'Bb'
-  timeSignatureTop: number
-  timeSignatureBase: number
-  tempo: number
+  title?: string | null
+  author?: string | null
+  key?: 'C'|'D'|'E'|'F'|'G'|'A'|'B'|'C#'|'D#'|'#F'|'#G'|'A#'|'Db'|'Eb'|'Gb'|'Ab'|'Bb'| null
+  timeSignatureTop?: number | null
+  timeSignatureBase?: number| null
+  tempo?: number | null
   time: Date
   notes: Note[]
   role?: Role //Optional

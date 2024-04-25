@@ -22,7 +22,5 @@
     score: undefined,
   })
 
-  function enterScore(){
-    this.$router.push('/score/' + props.score?._id)
-  }
+  
 </script>

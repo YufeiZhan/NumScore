@@ -1,20 +1,25 @@
 <template> 
     <div >
         <!-- Title -->
-        <h1 style="display: flex; justify-content: center;" class="m-5">{{ score?.title }}</h1>
+        <h1 v-if="score?.title" style="display: flex; justify-content: center;" class="m-5">{{ score?.title }}</h1>
+        <h1 v-else style="display: flex; justify-content: center;" class="m-5 empty-info">ENTER TITLE HERE</h1>
+
 
         <!-- Score Information -->
         <div style="display:flex; justify-content: space-between;" >
-            <div style="display:flex; justify-content: center;" class="d-flex align-items-center">
+            <div style="display:flex; justify-content: center" class="d-flex align-items-center">
                 <h4 class="ms-5 mb-0"> 1  =  </h4>
                 <div style="text-align: center;" class="ms-2">
-                    <h4 class="mb-0">{{ score?.timeSignatureTop }}</h4>
+                    <h4 v-if="score?.timeSignatureTop" class="mb-0">{{ score?.timeSignatureTop }}</h4>
+                    <h4 v-else class="mb-0 empty-info">?</h4>
                     <h5 class="mb-0" style="line-height:0.5;">⏤</h5>
-                    <h4 class="mb-0">{{ score?.timeSignatureBase }}</h4>
+                    <h4 v-if="score?.timeSignatureBase" class="mb-0">{{ score?.timeSignatureBase }}</h4>
+                    <h4 v-else class="mb-0 empty-info">?</h4>
                 </div>
             </div>
             <div style="display:flex;" class="d-flex align-items-center me-5">
-                <p class="mb-0"><b>Author:</b> {{ score?.author }}</p>
+                <p v-if="score?.author" class="mb-0"><b>Author:</b> {{ score?.author }}</p>
+                <p v-else class="mb-0 empty-info"><b>Author:</b> Score Author </p>
             </div>
         </div>
 
@@ -30,6 +35,8 @@
                 </div>
             </div >
         </div>
+
+
 
         <!-- Toolbox -->
         <div style="position: fixed; right: 10px; bottom: 0px;">
@@ -52,7 +59,7 @@
     import Note from '../components/Note.vue'
 
     const score : Ref<Score> | Ref<undefined>= ref(undefined)
-    const showIcons : Ref<boolean> = ref(true)
+    const showIcons : Ref<boolean> = ref(false)
     const user: Ref<any> = inject("user")!
 
     // props
