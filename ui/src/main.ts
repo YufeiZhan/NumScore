@@ -9,8 +9,6 @@ import './assets/style.css';
 
 
 import App from './App.vue'
-import CustomerScreen from './views/CustomerScreen.vue'
-import OperatorScreen from './views/OperatorScreen.vue'
 import IndexPage from './views/IndexPage.vue'
 import HomePage from './views/HomePage.vue'
 import ScorePage from './views/ScorePage.vue'

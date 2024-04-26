@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-    import { watch, onMounted, ref, Ref, inject } from 'vue'
+    import { onMounted, ref, Ref, inject } from 'vue'
     import { Score } from '../../../server/data'
     import Note from '../components/Note.vue'
 
