@@ -1,6 +1,11 @@
 .bg-app{
     background-color: #799362;
 }
+
+.bg-app-admin{
+    background-color: #00684A;
+}
+
 .note{
     font-size: 30px;
     margin-left: 5px;

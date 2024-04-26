@@ -1,8 +1,8 @@
 <template>
     <div>
-      <b-navbar variant="faded" type="light" class="bg-app">
+      <b-navbar variant="faded" type="light" :class="user?.roles?.includes('admin') ? 'bg-app-admin' : 'bg-app'">
         <!-- Logo -->
-        <b-navbar-brand href="#" class="ms-2">🪕 JIANPU</b-navbar-brand>
+        <b-navbar-brand href="#" class="ms-2" >🪕 JIANPU</b-navbar-brand>
 
         <!-- Login / Signup -->
         <b-navbar-nav class="ms-auto">
