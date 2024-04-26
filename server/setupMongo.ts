@@ -13,7 +13,9 @@ async function main() {
   const db = client.db("numscore")
 
   // add data
-  console.log("inserting users", await db.collection("users").insertMany([user1] as any))
+  // console.log("inserting users", await db.collection("users").insertMany([user1] as any))
+  // Create empty users collection to test OICD user creation in db
+  console.log("creating users collefction", await db.createCollection("users")) 
   console.log("inserting scores", await db.collection("scores").insertMany([aliceScore1] as any))
 
   process.exit(0)

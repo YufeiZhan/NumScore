@@ -24,6 +24,8 @@
 - [] Extra 1: CI/CD pipeline
 - [] Extra 2: RBAC
 - [] Show project in mobile device
+- [] Concurrency: when 1 user submits while the other user didn't refresh and tried to submit too
+
 
 ## Submission (5x assignment grades) due **Saturday, April 20, 11:59pm**
 1. Git repo with small commits
