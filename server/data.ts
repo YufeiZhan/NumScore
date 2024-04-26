@@ -1,19 +1,19 @@
 export interface User {
-  _id: string
-  name: string
-  email: string
-  password: string
+  _id: string // uses the 'sub' field of Gitlab, which is the unique Gitlab ID of the user
+  name: string // the name user wants to use in this application, default to be Gitlab's 'nickname' field
+  email: string // same as the 'email' field of Gitlab
+  password: string | null // default ot be null because of OIDC, user can set up one lateron
   scores: ScoreRolePair[] // pair of scores that users are part of
 }
 
 export interface Score {
-  _id: string
-  title: string
-  author: string
-  key: 'C'|'D'|'E'|'F'|'G'|'A'|'B'|'C#'|'D#'|'#F'|'#G'|'A#'|'Db'|'Eb'|'Gb'|'Ab'|'Bb'
-  timeSignatureTop: number
-  timeSignatureBase: number
-  tempo: number
+  _id: string // set to be {title}-{user._id} format to ensure uniqueness
+  title?: string | null
+  author?: string | null
+  key?: 'C'|'D'|'E'|'F'|'G'|'A'|'B'|'C#'|'D#'|'#F'|'#G'|'A#'|'Db'|'Eb'|'Gb'|'Ab'|'Bb'| null
+  timeSignatureTop?: number | null
+  timeSignatureBase?: number| null
+  tempo?: number | null
   time: Date
   notes: Note[]
   role?: Role //Optional
@@ -30,18 +30,19 @@ export interface Note {
   number: 0 |1 |2 |3 |4 |5 |6 |7
   duration: 1 | 0.5 | 0.25 | 0.125 | 0.0625 | 0.03125 | 0.015625 // 1 - 1/64
   pitch: 0 | 1 | 2 | 3 | -1 | -2 | -3 // positive means high pitch and negative means low pitch
+  color?: "black" | "blue" | "red"
 }
 
 export const user1 : User = {
   _id: '1',
   name: 'yz858',
   email: 'alice@duke.edu',
-  password: '123123',
-  scores: [{scoreId: 'Alphabet Song-yz858', role: 'Creator'}]
+  password: null,
+  scores: [{scoreId: 'Alphabet Song-1', role: 'Creator'}]
 }
 
 export const aliceScore1 : Score = {
-  _id: 'Alphabet Song-yz858', // unique id is score title-username
+  _id: 'Alphabet Song-1', // unique id is score title-_id
   title: 'Alphabet Song',
   author: 'Alice',
   key: 'C',

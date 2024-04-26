@@ -1,5 +1,5 @@
 <template>
-  <b-link :to="`/score/${score._id}`">
+  <b-link :to="`/score/${score?._id}`">
     <b-card :sub-title="score?.title" align="center" style="width: 15rem; height: 18rem;" class="m-3 overflow-hidden">
         <img src="../assets/index_pic.png" style="max-width: 15rem; max-height:10rem;">
         <template #footer>
@@ -22,7 +22,5 @@
     score: undefined,
   })
 
-  function enterScore(){
-    this.$router.push('/score/' + props.score?._id)
-  }
+
 </script>
