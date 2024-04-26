@@ -1,5 +1,10 @@
 {
   "dependencies": {
     "bootstrap-vue": "^2.23.1"
-  }
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.1",
+    "@types/node": "^20.12.7"
+  },
+  "scripts": {}
 }
