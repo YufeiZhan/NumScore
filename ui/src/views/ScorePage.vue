@@ -1,6 +1,7 @@
 <template>
     <div>
-        <b-button v-b-modal="'configure-model'" class="bg-app"
+        <!-- Configure Score Details -->
+        <b-button v-if="user?.roles?.includes('user')" v-b-modal="'configure-model'" class="bg-app"
             style="position:relative; top:10px;left:10px;"><b-icon-gear scale="1.5"></b-icon-gear></b-button>
         <b-modal id="configure-model" title="Configure Score Setting" hide-header-close @ok="handleScoreSubmit">
             <form @submit="handleScoreSubmit">
@@ -67,7 +68,7 @@
             </div>
 
             <!-- Add New Note-->
-            <div class="note">
+            <div v-if="user?.roles?.includes('user')" class="note">
                 <b-button v-b-modal="'new-note-model'" variant="light"><b-icon-plus
                         scale="1.5"></b-icon-plus></b-button>
                 <div v-for="number in 6" :key="number" class="hidden-note-deco">·</div>
@@ -98,7 +99,7 @@
 
 
         <!-- Toolbox -->
-        <div style="position: fixed; right: 10px; bottom: 0px;">
+        <div v-if="user?.roles?.includes('user')" style="position: fixed; right: 10px; bottom: 0px;">
             <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-share variant="light"
                     scale="1.4"></b-icon-share></b-avatar>
             <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-download variant="light"
@@ -110,7 +111,7 @@
         </div>
 
         <!-- User Icons -->
-        <div style="position: fixed; left: 0px; bottom: 10px;">
+        <div v-if="user?.roles?.includes('user')" style="position: fixed; left: 0px; bottom: 10px;">
             <b-avatar :text="user.preferred_username.slice(0, 2)" class="avatar-user"></b-avatar>
         </div>
     </div>

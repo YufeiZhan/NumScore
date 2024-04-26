@@ -9,7 +9,7 @@ import passport from 'passport'
 import { gitlab } from "./secrets"
 import MongoStore from 'connect-mongo'
 import { Collection, Db, MongoClient, ObjectId } from 'mongodb'
-import { Customer, CustomerWithOrders, DraftOrder, Operator, OperatorWithOrders, Order, ScoreRolePair, possibleIngredients } from './data'
+import { ScoreRolePair } from './data'
 import { Score, User, Note } from './data'
 
 
@@ -21,6 +21,7 @@ let scores: Collection<Score> // a collection of db
 let users: Collection<User> // a collection of db
 let nextUserId: number = 0 // tracking user id
 let nextScoreId: number = 0 // tracking score id
+const OPERATOR_GROUP_ID = process.env.GROUP || "" //if given NumScoreAdmin then admin page otherwise normal user page
 
 // set up Express, body parsing for both JSON and URL encoded
 const app = express()
@@ -135,6 +136,12 @@ app.get("/api/scores", async (req, res) => {
       }
     }
   }
+})
+
+app.get("/api/score/all", async(req,res) => {
+  console.log("Retreiving all scores from the database (for admin).")
+  const retrievedScores: Score[] = await scores.find({}).toArray()
+  res.status(200).json(retrievedScores)
 })
 
 app.get("/api/score/new", async (req, res) => {
@@ -364,6 +371,7 @@ client.connect().then(() => {
       function verify(tokenSet: any, userInfo: any, done: (error: any, user: any) => void) {
         console.log('userInfo', userInfo)
         console.log('tokenSet', tokenSet)
+        userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["user"] 
         return done(null, userInfo)
       }
 
