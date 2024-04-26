@@ -1,9 +1,12 @@
 <template>
   <div class="m-5">
     <h1 class="m-4"> HOME </h1>
-    <div style="display:flex; justify-content:flex-start;flex-wrap: wrap;">
+    <div v-if="user?.roles?.includes('user')" style="display:flex; justify-content:flex-start;flex-wrap: wrap;">
       <ScorePreview v-for="(score, index) in scores" :score="score" />
       <AddScore />
+    </div>
+    <div v-if="user?.roles?.includes('admin')" style="display:flex; justify-content:flex-start;flex-wrap: wrap;">
+      <ScorePreview v-for="(score, index) in scores" :score="score" />
     </div>
   </div>
 </template>
@@ -23,25 +26,37 @@ async function refresh() {
   console.log("Accessing Home page...")
   console.log("Accessing the existing user ...")
 
-  try {
-    console.log("Accessing backend /api/scores")
-    const response = await fetch("/api/scores");
-    console.log("The response is", response.status)
-    if (!response.ok) {
-      if (response.status === 403) {
-        alert('You do not have permission to view this data.');
-        scores.value = []; // Clear scores if not authorized
-      } else {
-        alert('An error occurred while fetching the data.');
-      }
-      return; // Exit the function early
+  let response : Response | null = null
+  if (user.value.roles.includes("user")) { // user fetch
+    try {
+      console.log("Accessing backend /api/scores")
+      response = await fetch("/api/scores");
+      console.log("The response is", response.status)
+    } catch (error) {
+      console.error('Failed to fetch scores:', error);
+      alert('An error occurred while fetching the scores data for user.');
     }
-    const data = await response.json()
-    scores.value =  data as any;
-  } catch (error) {
-    console.error('Failed to fetch scores:', error);
-    alert('An error occurred while fetching the scores data.');
+  } else { // admin fetch
+    try{
+      console.log("Accessing backend /api/scores/all")
+      response = await fetch("/api/score/all");
+    }catch (error) {
+      console.error('Failed to fetch scores:', error);
+      alert('An error occurred while fetching all scores for admin.');
+    }
   }
+
+  if (!response?.ok) {
+        if (response?.status === 403) {
+          alert('You do not have permission to view this data.');
+          scores.value = []; // Clear scores if not authorized
+        } else {
+          alert('An error occurred while fetching the data.');
+        }
+        return; // Exit the function early
+      }
+      const data = await response.json()
+      scores.value = data as any;
 }
 
 //use API to fetch the user information in the session
