@@ -69,6 +69,7 @@ export interface Note {
   number: 0 |1 |2 |3 |4 |5 |6 |7
   duration: 1 | 0.5 | 0.25 | 0.125 | 0.0625 | 0.03125 | 0.015625 // 1 - 1/64
   pitch: 0 | 1 | 2 | 3 | -1 | -2 | -3 // positive means high pitch and negative means low pitch
+  color?: "black" | "blue" | "red"
 }
 
 export const user1 : User = {

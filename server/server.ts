@@ -10,7 +10,7 @@ import { gitlab } from "./secrets"
 import MongoStore from 'connect-mongo'
 import { Collection, Db, MongoClient, ObjectId } from 'mongodb'
 import { Customer, CustomerWithOrders, DraftOrder, Operator, OperatorWithOrders, Order, ScoreRolePair, possibleIngredients } from './data'
-import { Score, User } from './data'
+import { Score, User, Note } from './data'
 
 
 // set up Mongo
@@ -147,18 +147,11 @@ app.get("/api/score/new", async (req, res) => {
   }
   try {
     scores.insertOne(newScore)
-    
     await users.updateOne(
-      {
-        name: (req.user as any).preferred_username,
-      },
-      {
-        $push: {
-          scores: {scoreId: String(nextScoreId), role: 'Creator'}
-        }
-      }
+      { name: (req.user as any).preferred_username, },
+      { $push: { scores: { scoreId: String(nextScoreId), role: 'Creator' } } }
     )
-    nextUserId += 1
+    nextScoreId += 1
     res.status(200)
   } catch (e) {
     console.error("Error creating new score:", e)
@@ -177,9 +170,37 @@ app.get("/api/score/:scoreId", async (req, res) => {
 
 
 
+app.put("/api/score/:scoreId/newnote", async (req, res) => {
+  const note: Note = req.body
 
+  const result = await scores.updateOne(
+    { _id: req.params.scoreId, },
+    { $push: { notes: note } }
+  )
+  res.status(200).json({ status: "ok" })
+})
 
+// app.put("/api/customer/:customerId/draft-order", async (req, res) => {
+//   const order: DraftOrder = req.body
 
+//   // TODO: validate customerId
+
+//   const result = await orders.updateOne(
+//     {
+//       customerId: req.params.customerId,
+//       state: "draft",
+//     },
+//     {
+//       $set: { 
+//         ingredients: order.ingredients
+//       }
+//     },
+//     {
+//       upsert: true // if not found, make a new document: update otherwise make a new one,
+//     }              // which simplies the logic to check wether that order exists or not
+//   )
+//   res.status(200).json({ status: "ok" })
+// })
 
 // app.get("/api/possible-ingredients", (req, res) => {
 //   res.status(200).json(possibleIngredients)

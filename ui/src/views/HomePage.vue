@@ -1,7 +1,7 @@
 <template>
   <div class="m-5">
     <h1 class="m-4"> HOME </h1>
-    <div style="display:flex; justify-content:flex-start;">
+    <div style="display:flex; justify-content:flex-start;flex-wrap: wrap;">
       <ScorePreview v-for="(score, index) in scores" :score="score" />
       <AddScore />
     </div>
@@ -36,7 +36,8 @@ async function refresh() {
       }
       return; // Exit the function early
     }
-    scores.value = await response.json();
+    const data = await response.json()
+    scores.value =  data as any;
   } catch (error) {
     console.error('Failed to fetch scores:', error);
     alert('An error occurred while fetching the scores data.');

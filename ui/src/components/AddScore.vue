@@ -7,9 +7,6 @@
 </template>
 
 <script setup lang="ts">
-import {useRouter} from 'vue-router';
-
-const router = useRouter()
 
 async function createNewScore() {
   console.log("Function entered.")
@@ -18,7 +15,7 @@ async function createNewScore() {
     console.log("The response for creating a new score is", response.status)
     if (response.ok){
       const scoreId = await response.json();
-      router.push('/score/'+scoreId)
+      window.location.reload();
     } else {
       alert('An error occurred while creating the new score.');
     }
