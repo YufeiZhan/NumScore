@@ -21,7 +21,7 @@
 </template>
     
 <script setup lang="ts">
-    import { Note } from '../..//data'
+    import { Note } from '../../data'
 
     // props
     interface Props {
