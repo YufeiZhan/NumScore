@@ -2,7 +2,7 @@
     <div class="m-5">
         <h1 class="m-4"> HOME </h1>
         <div style="display:flex; justify-content:flex-start;">
-          <ScorePreview v-for="(score, index) in scores" :score="score"/>
+          <ScorePreview v-for="(score) in scores" :score="score"/>
           <AddScore />
         </div>
     </div>
@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
   import { watch, onMounted, ref, Ref, inject } from 'vue'
-  import {Score} from '../../../server/data'
+  import {Score} from '../../data'
   import ScorePreview from '../components/ScorePreview.vue'
   import AddScore from '../components/AddScore.vue'
 

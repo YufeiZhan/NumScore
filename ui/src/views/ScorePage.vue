@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
     import { onMounted, ref, Ref, inject } from 'vue'
-    import { Score } from '../../../server/data'
+    import { Score } from '../../data'
     import Note from '../components/Note.vue'
 
     const score : Ref<Score> | Ref<undefined>= ref(undefined)
