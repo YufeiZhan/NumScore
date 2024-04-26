@@ -1,5 +1,32 @@
 <template>
     <div>
+        <b-button v-b-modal="'configure-model'" class="bg-app"
+            style="position:relative; top:10px;left:10px;"><b-icon-gear scale="1.5"></b-icon-gear></b-button>
+        <b-modal id="configure-model" title="Configure Score Setting" hide-header-close @ok="handleScoreSubmit">
+            <form @submit="handleScoreSubmit">
+                <b-form-group id="input-group-1" label="Title:" label-for="score-title-input">
+                    <b-form-input id="score-title-input" v-model="formScore.title" placeholder="Enter title"
+                        required></b-form-input>
+                </b-form-group>
+                <b-form-group id="input-group-2" label="Author:" label-for="score-author-input">
+                    <b-form-input id="score-author-input" v-model="formScore.author" placeholder="Enter author"
+                        required></b-form-input>
+                </b-form-group>
+                <b-form-group id="input-group-3" label="Key:" label-for="score-key-input">
+                    <b-form-select id="score-key-input" v-model="formScore.key" :options="keys"
+                        required></b-form-select>
+                </b-form-group>
+                <b-form-group id="input-group-4" label="Top Time Signature:" label-for="score-ts-top-input">
+                    <b-form-input id="score-ts-top-input" v-model="formScore.timeSignatureTop" type="number"
+                        placeholder="Enter top time sig" required></b-form-input>
+                </b-form-group>
+                <b-form-group id="input-group-5" label="Bottom Time Signature:" label-for="score-ts-bot-input">
+                    <b-form-input id="score-ts-bot-input" v-model="formScore.timeSignatureBase" type="number"
+                        placeholder="Enter base time sig" required></b-form-input>
+                </b-form-group>
+            </form>
+        </b-modal>
+
         <!-- Title -->
         <h1 v-if="score?.title" style="display: flex; justify-content: center;" class="m-5">{{ score?.title }}</h1>
         <h1 v-else style="display: flex; justify-content: center;" class="m-5 empty-info">ENTER TITLE HERE</h1>
@@ -8,7 +35,11 @@
         <!-- Score Information -->
         <div style="display:flex; justify-content: space-between;">
             <div style="display:flex; justify-content: center" class="d-flex align-items-center">
-                <h4 class="ms-5 mb-0"> 1 = </h4>
+                <div style="display:flex;">
+                    <h4 class="ms-5 mb-0"> 1 = </h4>
+                    <h4 v-if="score?.key" class="ms-2 mb-0">{{ score?.key }}</h4>
+                    <h4 v-else class="ms-2 mb-0 empty-info">?</h4>
+                </div>
                 <div style="text-align: center;" class="ms-2">
                     <h4 v-if="score?.timeSignatureTop" class="mb-0">{{ score?.timeSignatureTop }}</h4>
                     <h4 v-else class="mb-0 empty-info">?</h4>
@@ -37,10 +68,11 @@
 
             <!-- Add New Note-->
             <div class="note">
-                <b-button v-b-modal="'new-note-model'" variant="light"><b-icon-plus scale="1.5"></b-icon-plus></b-button>
+                <b-button v-b-modal="'new-note-model'" variant="light"><b-icon-plus
+                        scale="1.5"></b-icon-plus></b-button>
                 <div v-for="number in 6" :key="number" class="hidden-note-deco">·</div>
             </div>
-            <b-modal id="new-note-model" title="Creating New Note" hide-header-close @ok="handleSubmit">
+            <b-modal id="new-note-model" title="Creating New Note" hide-header-close @ok="handleNoteSubmit">
                 <form @submit="handleSubmit">
                     <b-form-group id="input-group-1" label="Note:" label-for="note-input"
                         invalid-feedback="Note is required">
@@ -93,12 +125,17 @@ const score: Ref<Score> | Ref<undefined> = ref(undefined)
 const showIcons: Ref<boolean> = ref(false)
 const user: Ref<any> = inject("user")!
 
+// Note Form
 const defaultForm = { note: 1, pitch: 0, duration: 1, color: "black" }
 const form = ref({ ...defaultForm })
 const notes = [1, 2, 3, 4, 5, 6, 7]
 const pitches = [0, 1, 2, 3, -1, -2, -3]
 const durations = [1, 0.5, 0.25, 0.125, 0.0625]
 const colors = ["black", "blue", "red"]
+
+// Score Form
+const formScore = { title: score.value?.title, author: score.value?.author, key: score.value?.key, timeSignatureTop: score.value?.timeSignatureTop, timeSignatureBase: score.value?.timeSignatureBase }
+const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D#', '#F', '#G', 'A#', 'Db', 'Eb', 'Gb', 'Ab', 'Bb']
 
 // props
 interface Props {
@@ -169,7 +206,9 @@ function toolboxOnClick() {
     showIcons.value = !showIcons.value
 }
 
-async function handleSubmit() {
+
+
+async function handleNoteSubmit() {
     console.log("Submit button clicked:", form.value)
     const newNote: Note = { number: form.value.note as any, pitch: form.value.pitch as any, duration: form.value.duration as any, color: form.value.color as any }
     await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/newnote",
@@ -184,5 +223,16 @@ async function handleSubmit() {
 
 function resetForm() {
     form.value = { ...defaultForm }
+}
+
+async function handleScoreSubmit() {
+    console.log("Congifure form is submitted.")
+    await fetch("/api/score/" + encodeURIComponent(props.scoreId as any),
+        {
+            headers: { "Content-Type": "application/json", },
+            method: "PUT",
+            body: JSON.stringify(formScore)
+        })
+    window.location.reload();
 }
 </script>

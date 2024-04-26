@@ -180,6 +180,17 @@ app.put("/api/score/:scoreId/newnote", async (req, res) => {
   res.status(200).json({ status: "ok" })
 })
 
+app.put("/api/score/:scoreId", async(req, res) => {
+  const score = req.body
+
+  const result = await scores.updateOne(
+    { _id: req.params.scoreId, },
+    { $set: { title:score.title, key:score.key, timeSignatureTop:score.timeSignatureTop, timeSignatureBase:score.timeSignatureBase,time:new Date()}},
+  )
+  res.status(200).json({ status: "ok" })
+
+})
+
 // app.put("/api/customer/:customerId/draft-order", async (req, res) => {
 //   const order: DraftOrder = req.body
 
