@@ -23,40 +23,41 @@ const scores: Ref<Score[]> = ref([])
 watch(user, refresh, { immediate: true })
 
 async function refresh() {
-  console.log("Accessing Home page...")
-  console.log("Accessing the existing user ...")
+  console.log("🎨: Accessing Home page...")
 
-  let response : Response | null = null
+  let response: Response | null = null
   if (user.value.roles.includes("user")) { // user fetch
     try {
-      console.log("Accessing backend /api/scores")
+      console.log("- accessing all scores through api (user)")
       response = await fetch("/api/scores");
-      console.log("The response is", response.status)
+      console.log("- the response accessing scores is", response.status)
     } catch (error) {
-      console.error('Failed to fetch scores:', error);
+      console.error('- failed to fetch scores (user):', error);
       alert('An error occurred while fetching the scores data for user.');
     }
   } else { // admin fetch
-    try{
-      console.log("Accessing backend /api/scores/all")
+    try {
+      console.log("- acessing all scores through api (admin)")
       response = await fetch("/api/score/all");
-    }catch (error) {
-      console.error('Failed to fetch scores:', error);
+    } catch (error) {
+      console.error('- failed to fetch scores (admin):', error);
       alert('An error occurred while fetching all scores for admin.');
     }
   }
 
   if (!response?.ok) {
-        if (response?.status === 403) {
-          alert('You do not have permission to view this data.');
-          scores.value = []; // Clear scores if not authorized
-        } else {
-          alert('An error occurred while fetching the data.');
-        }
-        return; // Exit the function early
-      }
-      const data = await response.json()
-      scores.value = data as any;
+    console.log("🎨: Accessing scores for Home Page failed ❓")
+    if (response?.status === 403) {
+      alert('You do not have permission to view this data.');
+      scores.value = []; // Clear scores if not authorized
+    } else {
+      alert('An error occurred while fetching the data.');
+    }
+    return; // Exit the function early
+  }
+  console.log("🎨: Accessing scores for Home Page completes! ✅")
+  const data = await response.json()
+  scores.value = data as any;
 }
 
 //use API to fetch the user information in the session

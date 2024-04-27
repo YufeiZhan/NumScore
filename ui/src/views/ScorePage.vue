@@ -149,14 +149,14 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 async function refresh() {
-    console.log("Accessing Score page...")
-    console.log("Accessing the score given...")
+    console.log("🎨: Accessing Score Page...")
     if (props.scoreId) {
         try {
-            console.log("Accessing backend /api/score/:scoreId")
+            console.log("- accessing backend to retrieve the score")
             const response = await fetch("/api/score/" + props.scoreId);
-            console.log("The response is", response.status)
+            console.log("- score retrieval reponse is: ", response.status)
             if (!response.ok) {
+                console.log("🎨: score retrieved response error ❓")
                 if (response.status === 403) {
                     alert('You do not have permission to view this data.');
                     score.value = undefined; // Clear scores if not authorized
@@ -165,10 +165,12 @@ async function refresh() {
                 }
                 return; // Exit the function early
             } else {
+                console.log("🎨: score retrieved successfully! ✅")
                 score.value = await response.json();
             }
         } catch (error) {
-            console.error('Failed to fetch score:', error);
+            console.log("🎨: score retrieved failed! ❓")
+            console.error('- failed to fetch score:', error);
             alert('An error occurred while fetching the score data.');
         }
     }
@@ -210,7 +212,7 @@ function toolboxOnClick() {
 
 
 async function handleNoteSubmit() {
-    console.log("Submit button clicked:", form.value)
+    console.log("🎨: Submitting the new note created...")
     const newNote: Note = { number: form.value.note as any, pitch: form.value.pitch as any, duration: form.value.duration as any, color: form.value.color as any }
     await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/newnote",
         {
@@ -218,8 +220,9 @@ async function handleNoteSubmit() {
             method: "PUT",
             body: JSON.stringify(newNote)
         })
+    console.log("🎨: new note submitted...")
     resetForm()
-    window.location.reload();
+    refresh()
 }
 
 function resetForm() {
@@ -227,13 +230,20 @@ function resetForm() {
 }
 
 async function handleScoreSubmit() {
-    console.log("Congifure form is submitted.")
-    await fetch("/api/score/" + encodeURIComponent(props.scoreId as any),
+    console.log("🎨: Submitting new score configuration...")
+    const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any),
         {
             headers: { "Content-Type": "application/json", },
             method: "PUT",
             body: JSON.stringify(formScore)
-        })
-    window.location.reload();
+    })
+    
+    if (response.ok){
+        console.log("🎨: Submitting new score configuration completes ✅")
+        window.location.reload();
+    } else {
+        console.log("🎨: Submitting new score configuration errored ❓")
+        alert("Submitting new score configuration errored.")
+    }
 }
 </script>

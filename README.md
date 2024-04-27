@@ -31,7 +31,7 @@ Specifically for a particular score, the user can be either "creator", "editor" 
 - [x] Use OIDC for user login/authentication 
 - [x] A form (besides login) showing at least 4 fields
 - [x] Supports multiple authenticated users (managed using database)
-- [] Load-balanced scale-out REST API
+- [] Load-balanced scale-out REST API (load balancing gets handled by kubernetes)
 - [] Basic E2E test suite
 - [] Run on Kubernetes
 - [] Extra 1: CI/CD pipeline

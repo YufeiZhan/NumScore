@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
 import expressPinoLogger from 'express-pino-logger'
@@ -19,8 +19,6 @@ const client = new MongoClient(url)
 let db: Db
 let scores: Collection<Score> // a collection of db
 let users: Collection<User> // a collection of db
-let nextUserId: number = 0 // tracking user id
-let nextScoreId: number = 0 // tracking score id
 const OPERATOR_GROUP_ID = process.env.GROUP || "" //if given NumScoreAdmin then admin page otherwise normal user page
 
 // set up Express, body parsing for both JSON and URL encoded
@@ -63,13 +61,23 @@ declare module 'express-session' {
 app.use(passport.initialize())
 app.use(passport.session())
 passport.serializeUser((user, done) => {
-  console.log("serializeUser", user)
+  console.log("💻: Serialize user...")
   done(null, user)
 })
 passport.deserializeUser((user, done) => {
-  console.log("deserializeUser", user)
+  console.log("💻: Deserialize user...")
   done(null, user)
 })
+
+// authentication middleware
+function checkAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    res.status(401).json("Please log in first. 🎵🎵")
+    return
+  }
+
+  next()
+}
 
 // app routes
 app.get('/api/login', passport.authenticate('oidc', {
@@ -81,33 +89,40 @@ app.get('/api/login-callback', passport.authenticate('oidc', {
   failureRedirect: '/',
 }))
 
-app.get('/api/user', (req, res) => {
-  console.log("testtest" + req.user)
-  res.json(req.user || {})
-}) // TODO
+app.get('/api/user', checkAuthenticated, (req, res) => {
+  console.log("💻: Retrieving user...")
+  if(req.user){
+    console.log("💻: Rerieved user! ✅")
+    res.json(req.user)
+  } else{
+    console.log("💻: req.user not found ❓")
+    res.json({})
+  }
+})
 
 app.post("/api/logout", (req, res, next) => {
+  console.log("💻: Logging out...")
   req.logout((err) => {
     if (err) {
       return next(err)
     }
+    console.log("💻: Logged out. ✅")
     res.redirect("/")
   })
 })
 
-// Get all scores under the specified user
-app.get("/api/scores", async (req, res) => {
+app.get("/api/scores", checkAuthenticated, async (req, res) => {
+  console.log("💻: Retrieving all scores for the logged in user...")
   const OIDCuser = req.user as any
-  console.log("Retreiving user for /api/scores api", OIDCuser)
   const name = OIDCuser.preferred_username
-  console.log("Name of the OICD user is", name)
   if (!name) {
     res.status(404)
   } else {
     const user: User | null = await users.findOne({ name })
-    console.log("The user retreived from database using the OICD username:", user)
+    console.log("- The user retreived from database using the OICD username:", user._id)
 
     if (user) {
+      console.log("- User exists: retrieve scores from db")
       const scoresInfo: ScoreRolePair[] = user.scores
       const userScores: Score[] = []
       for (const scoreRolePair of scoresInfo) {
@@ -116,87 +131,96 @@ app.get("/api/scores", async (req, res) => {
         const score: Score = await scores.findOne({ _id })
         userScores.push(score)
       }
-      console.log(userScores)
       res.status(200).json(userScores || [])
     } else { // If user not in database yet, add user to the database
-      console.log("Add user to the database using Gitlab's credentials")
-      const newUser: User = {
-        _id: OIDCuser.sub,
-        name: OIDCuser.preferred_username,
-        email: OIDCuser.email,
-        password: null,
-        scores: []
-      }
-      try {
+      console.log("- User not exists yet: add user to the database using Gitlab's credentials")
+      const newUser: User = {_id: OIDCuser.sub, name: OIDCuser.preferred_username, email: OIDCuser.email,password: null,scores: []}
+      try { // Sync the new user in the users collection
         users.insertOne(newUser)
-        nextUserId += 1
-        res.status(200)
+        console.log("💻: Completes retrieving all scores for the new user! ✅")
+        res.status(200).json([])
       } catch (e) {
         console.error("Error creating user:", e)
+        console.log("💻: Error creating new user from OICD in the database ❓")
         res.status(500)
       }
     }
   }
 })
 
-app.get("/api/score/all", async(req,res) => {
-  console.log("Retreiving all scores from the database (for admin).")
+app.get("/api/score/all", checkAuthenticated, async(req,res) => {
+  console.log("💻: Retreiving all scores from the database (for admin).")
   const retrievedScores: Score[] = await scores.find({}).toArray()
   res.status(200).json(retrievedScores)
 })
 
-app.get("/api/score/new", async (req, res) => {
-  console.log("Creating new score at the backend...")
+app.get("/api/score/new", checkAuthenticated, async (req, res) => {
+  console.log("💻: Creating a new score at the backend...")
   const newScore: Score = {
-    _id: String(nextScoreId),
     title: null, author: (req.user as any).preferred_username,
     key: null, timeSignatureTop: null, timeSignatureBase: null,
     tempo: null, time: new Date(), notes: []
   }
   try {
-    scores.insertOne(newScore)
+    const insertedScoreId = (await scores.insertOne(newScore)).insertedId
     await users.updateOne(
       { name: (req.user as any).preferred_username, },
-      { $push: { scores: { scoreId: String(nextScoreId), role: 'Creator' } } }
+      { $push: { scores: { scoreId: insertedScoreId, role: 'Creator' } } }
     )
-    nextScoreId += 1
-    res.status(200)
+    console.log("💻: New score created successfully at the backend! ✅")
+    res.status(200).json({ status: "ok" })
   } catch (e) {
     console.error("Error creating new score:", e)
     res.status(500)
   }
 })
 
-app.get("/api/score/:scoreId", async (req, res) => {
-  const score: Score | null = await scores.findOne({ _id: req.params.scoreId })
+app.get("/api/score/:scoreId", checkAuthenticated, async (req, res) => {
+  console.log("💻: Retrieving a particular score of given score id at the backend...",req.params.scoreId)
+  const score: Score | null = await scores.findOne(new ObjectId(req.params.scoreId))
   if (score) {
+    console.log("💻: Retrieved the wanted score! ✅")
     return res.status(200).json(score)
   } else {
+    console.log("💻: No score of that id is found.")
     return res.status(404)
   }
 })
 
-
-
-app.put("/api/score/:scoreId/newnote", async (req, res) => {
+app.put("/api/score/:scoreId/newnote", checkAuthenticated, async (req, res) => {
+  console.log("💻: Add a new note...")
   const note: Note = req.body
 
   const result = await scores.updateOne(
-    { _id: req.params.scoreId, },
+    {_id : new ObjectId(req.params.scoreId) as any},
     { $push: { notes: note } }
   )
-  res.status(200).json({ status: "ok" })
+
+  if (result.modifiedCount == 1){
+    console.log("💻: Adding a new note completed! ✅")
+    res.status(200).json({ status: "ok" })
+  } else {
+    console.log("💻: Adding a new note failed - nothing is modified ❓")
+    res.status(500)
+  }
 })
 
-app.put("/api/score/:scoreId", async(req, res) => {
+app.put("/api/score/:scoreId", checkAuthenticated, async(req, res) => {
+  console.log("💻: Updating the score's setting...")
   const score = req.body
 
   const result = await scores.updateOne(
-    { _id: req.params.scoreId, },
+    { _id: new ObjectId(req.params.scoreId) as any },
     { $set: { title:score.title, key:score.key, timeSignatureTop:score.timeSignatureTop, timeSignatureBase:score.timeSignatureBase,time:new Date()}},
   )
-  res.status(200).json({ status: "ok" })
 
+  if (result.modifiedCount == 1){
+    console.log("💻: Updating the score's setting completes! ✅")
+    res.status(200).json({ status: "ok" })
+  } else {
+    console.log("💻: Updating score failed - nothing is modified ❓")
+    res.status(500)
+  }
 })
 
 // app.put("/api/customer/:customerId/draft-order", async (req, res) => {
@@ -351,8 +375,8 @@ app.put("/api/score/:scoreId", async(req, res) => {
 
 
 // connect to Mongo and OpenID, and start the server
-client.connect().then(() => {
-  console.log('Connected successfully to MongoDB')
+client.connect().then(async () => {
+  console.log('💻: Connected successfully to MongoDB')
   db = client.db("numscore")
   scores = db.collection('scores')
   users = db.collection('users')
@@ -370,8 +394,8 @@ client.connect().then(() => {
       }
 
       function verify(tokenSet: any, userInfo: any, done: (error: any, user: any) => void) {
-        console.log('userInfo', userInfo)
-        console.log('tokenSet', tokenSet)
+        console.log('💻: userInfo', userInfo)
+        console.log('💻: tokenSet', tokenSet)
         userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["user"] 
         return done(null, userInfo)
       }
@@ -383,6 +407,6 @@ client.connect().then(() => {
 
   // start server
   app.listen(port, () => {
-    console.log(`Smoothie server listening on port ${port}`)
+    console.log(`💻: Smoothie server listening on port ${port}`)
   })
 })
