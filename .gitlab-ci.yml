@@ -1,23 +1,31 @@
-build-job:
+stages:
+  - build
+  - deploy
+
+build-ui:
   stage: build
+  before_script:
+    - echo "Before ui build script"
+    - echo $PWD
+    - ls
   script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
+    - cd ui
+    - echo "-----Building UI-----"
+    - docker build -t lecture13-smoothie-stand-ui .
 
-test-job1:
-  stage: test
+build-server:
+  stage: build
+  before_script:
+    - echo "Before server build script"
+    - echo $PWD
+    - ls
   script:
-    - echo "This job tests something"
+    - cd server
+    - echo "-----Building Server-----"
+    - docker build -t lecture13-smoothie-stand-server .
 
-test-job2:
-  stage: test
-  script:
-    - echo "This job tests something, but takes more time than test-job1."
-    - echo "After the echo commands complete, it runs the sleep command for 20 seconds"
-    - echo "which simulates a test that runs 20 seconds longer than test-job1"
-    - sleep 20
-
-deploy-prod:
+deploy:
   stage: deploy
   script:
-    - echo "This job deploys something from the $CI_COMMIT_BRANCH branch."
-  environment: production
+    - kubectl delete -f k8s/
+    - kubectl create -f k8s/
