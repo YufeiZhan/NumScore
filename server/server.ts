@@ -14,7 +14,7 @@ import { Score, User, Note } from './data'
 
 
 // set up Mongo
-const url = 'mongodb://127.0.0.1:27017'
+const url = process.env.MONGO_URL || 'mongodb://db'
 const client = new MongoClient(url)
 let db: Db
 let scores: Collection<Score> // a collection of db
@@ -26,6 +26,7 @@ const OPERATOR_GROUP_ID = process.env.GROUP || "" //if given NumScoreAdmin then 
 // set up Express, body parsing for both JSON and URL encoded
 const app = express()
 const port = parseInt(process.env.PORT) || 8131
+const externalPort = parseInt(process.env.EXTERNAL_PORT) || port
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
@@ -35,7 +36,7 @@ app.use(expressPinoLogger({ logger }))
 
 // set up CORS - can do multiple origins 
 app.use(cors({
-  origin: ["http://localhost:8130",],
+  origin: ["http://localhost:8130", "http://localhost:31000"],
   credentials: true,
 }))
 
@@ -49,7 +50,7 @@ app.use(session({
   // the default store is memory-backed, so all sessions will be forgotten every time the server restarts
   // uncomment the following to use a Mongo-backed store that will work with a load balancer
   store: MongoStore.create({
-    mongoUrl: 'mongodb://127.0.0.1:27017',
+    mongoUrl: url,
     ttl: 14 * 24 * 60 * 60 // 14 days
   })
 }))
@@ -72,12 +73,12 @@ passport.deserializeUser((user, done) => {
 
 // app routes
 app.get('/api/login', passport.authenticate('oidc', {
-  successReturnToOrRedirect: "http://localhost:8130/"
+  successReturnToOrRedirect: "/home"
 }))
 
 app.get('/api/login-callback', passport.authenticate('oidc', {
-  successReturnToOrRedirect: 'http://localhost:8130/home',
-  failureRedirect: 'http://localhost:8130/',
+  successReturnToOrRedirect: '/home',
+  failureRedirect: '/',
 }))
 
 app.get('/api/user', (req, res) => {
@@ -364,7 +365,7 @@ client.connect().then(() => {
       const params = {
         scope: 'openid profile email', //openid has to be one of it
         nonce: generators.nonce(),
-        redirect_uri: 'http://localhost:8131/api/login-callback',
+        redirect_uri: `http://localhost:${externalPort}/api/login-callback`,
         state: generators.state(),
       }
 

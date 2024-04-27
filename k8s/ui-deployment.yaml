@@ -19,5 +19,5 @@ spec:
         name: ui
         imagePullPolicy: Never
         ports:
-        - containerPort: 8190
+        - containerPort: 80
           name: ui
