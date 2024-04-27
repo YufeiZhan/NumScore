@@ -1,13 +1,13 @@
 stages:
   - build
   - deploy
+  - test
 
 build-ui:
   stage: build
   before_script:
     - echo "Before ui build script"
     - echo $PWD
-    - ls
   script:
     - cd ui
     - echo "-----Building UI-----"
@@ -18,7 +18,6 @@ build-server:
   before_script:
     - echo "Before server build script"
     - echo $PWD
-    - ls
   script:
     - cd server
     - echo "-----Building Server-----"
@@ -29,3 +28,21 @@ deploy:
   script:
     - kubectl delete -f k8s/
     - kubectl create -f k8s/
+
+e2e-test:
+  stage: test
+  before_script:
+    - echo "Before e2e test script"
+    - echo $PWD
+  script:
+    - echo "-----Start e2e Tests-----"
+    - npm --version
+    - node --version
+    - npm install @playwright/test
+    - npx playwright install
+    - npx playwright test --headed --project=chromium
+    - echo "e2e tests are finished."
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/index.html
