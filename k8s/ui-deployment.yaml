@@ -15,7 +15,7 @@ spec:
         app: ui
     spec:
       containers:
-      - image: lecture13-smoothie-stand-ui
+      - image: numscore-ui
         name: ui
         imagePullPolicy: Never
         ports:

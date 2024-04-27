@@ -8,8 +8,8 @@
 
 ## Usage
 1. Clone the repo
-2. Inside the **/server** folder, run `docker build -t numscore-server`
-3. Inside the **/ui** folder, run `docker build -t numscore-ui`
+2. Inside the **/server** folder, run `docker build -t numscore-server .`
+3. Inside the **/ui** folder, run `docker build -t numscore-ui .`
 4. In the root **/numscore** folder, run `kubectl create -f k8s/` for the first time and run `kubectl delete -f k8s/` beforehand if errored
 
 ## RBAC

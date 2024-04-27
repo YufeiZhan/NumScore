@@ -15,7 +15,7 @@ spec:
         app: server
     spec:
       containers:
-      - image: lecture13-smoothie-stand-server
+      - image: numscore-server
         name: server
         imagePullPolicy: Never
         ports:
