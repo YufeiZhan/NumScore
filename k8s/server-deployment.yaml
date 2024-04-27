@@ -26,3 +26,5 @@ spec:
           value: mongodb://db
         - name: EXTERNAL_PORT
           value: "31000"
+        - name: DISABLE_SECURITY
+          value: foo-bar-baz

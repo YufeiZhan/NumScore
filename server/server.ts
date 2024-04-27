@@ -6,12 +6,18 @@ import session from 'express-session'
 import cors from 'cors'
 import { Issuer, Strategy, generators } from 'openid-client'
 import passport from 'passport'
+import { Strategy as CustomStrategy } from 'passport-custom'
 import { gitlab } from "./secrets"
 import MongoStore from 'connect-mongo'
 import { Collection, Db, MongoClient, ObjectId } from 'mongodb'
 import { ScoreRolePair } from './data'
 import { Score, User, Note } from './data'
 
+const DISABLE_SECURITY = process.env.DISABLE_SECURITY
+const passportStrategies = [
+  ...(DISABLE_SECURITY ? ["disable-security"] : []),
+  "oidc",
+]
 
 // set up Mongo
 const url = process.env.MONGO_URL || 'mongodb://db'
@@ -80,11 +86,11 @@ function checkAuthenticated(req: Request, res: Response, next: NextFunction) {
 }
 
 // app routes
-app.get('/api/login', passport.authenticate('oidc', {
+app.get('/api/login', passport.authenticate(passportStrategies, {
   successReturnToOrRedirect: "/home"
 }))
 
-app.get('/api/login-callback', passport.authenticate('oidc', {
+app.get('/api/login-callback', passport.authenticate(passportStrategies, {
   successReturnToOrRedirect: '/home',
   failureRedirect: '/',
 }))
@@ -119,7 +125,7 @@ app.get("/api/scores", checkAuthenticated, async (req, res) => {
     res.status(404)
   } else {
     const user: User | null = await users.findOne({ name })
-    console.log("- The user retreived from database using the OICD username:", user._id)
+    console.log("- The user retreived from database using the OICD username:", user?._id)
 
     if (user) {
       console.log("- User exists: retrieve scores from db")
@@ -229,6 +235,15 @@ client.connect().then(async () => {
   db = client.db("numscore")
   scores = db.collection('scores')
   users = db.collection('users')
+
+  passport.use("disable-security", new CustomStrategy((req, done) => {
+    if (req.query.key !== DISABLE_SECURITY) {
+      console.log("you must supply ?key=" + DISABLE_SECURITY + " to log in via DISABLE_SECURITY")
+      done(null, false)
+    } else {
+      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role) })
+    }
+  }))
 
   // why is this bracket needed?
   {
