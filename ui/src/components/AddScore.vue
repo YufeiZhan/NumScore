@@ -9,20 +9,20 @@
 <script setup lang="ts">
 
 async function createNewScore() {
-  console.log("Function entered.")
+  console.log("🎨: Create new score button clicked!")
   try {
     const response = await fetch("/api/score/new")
-    console.log("The response for creating a new score is", response.status)
-    if (response.ok){
-      const scoreId = await response.json();
-      window.location.reload();
-    } else {
+    console.log("- the response for creating a new score is", response.status)
+    if (!response.ok){
       alert('An error occurred while creating the new score.');
     }
+    console.log("🎨: Creating new score completes!")
   } catch (error) {
     console.error('Failed to create new scores:', error);
-    alert('An error occurred while creating new score.');
+    alert('An error occurred while creating new score.\n'+error);
   }
+
+  window.location.reload();
 }
 
 </script>
