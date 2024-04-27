@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import pino from 'pino'
 import expressPinoLogger from 'express-pino-logger'
@@ -68,6 +68,16 @@ passport.deserializeUser((user, done) => {
   done(null, user)
 })
 
+// authentication middleware
+function checkAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    res.status(401).json("Please log in first. 🎵🎵")
+    return
+  }
+
+  next()
+}
+
 // app routes
 app.get('/api/login', passport.authenticate('oidc', {
   successReturnToOrRedirect: "http://localhost:8130/"
@@ -78,7 +88,7 @@ app.get('/api/login-callback', passport.authenticate('oidc', {
   failureRedirect: 'http://localhost:8130/',
 }))
 
-app.get('/api/user', (req, res) => {
+app.get('/api/user', checkAuthenticated, (req, res) => {
   console.log("💻: Retrieving user...")
   if(req.user){
     console.log("💻: Rerieved user! ✅")
@@ -100,8 +110,7 @@ app.post("/api/logout", (req, res, next) => {
   })
 })
 
-// Get all scores under the specified user
-app.get("/api/scores", async (req, res) => {
+app.get("/api/scores", checkAuthenticated, async (req, res) => {
   console.log("💻: Retrieving all scores for the logged in user...")
   const OIDCuser = req.user as any
   const name = OIDCuser.preferred_username
@@ -138,13 +147,13 @@ app.get("/api/scores", async (req, res) => {
   }
 })
 
-app.get("/api/score/all", async(req,res) => {
+app.get("/api/score/all", checkAuthenticated, async(req,res) => {
   console.log("💻: Retreiving all scores from the database (for admin).")
   const retrievedScores: Score[] = await scores.find({}).toArray()
   res.status(200).json(retrievedScores)
 })
 
-app.get("/api/score/new", async (req, res) => {
+app.get("/api/score/new", checkAuthenticated, async (req, res) => {
   console.log("💻: Creating a new score at the backend...")
   const newScore: Score = {
     title: null, author: (req.user as any).preferred_username,
@@ -165,7 +174,7 @@ app.get("/api/score/new", async (req, res) => {
   }
 })
 
-app.get("/api/score/:scoreId", async (req, res) => {
+app.get("/api/score/:scoreId", checkAuthenticated, async (req, res) => {
   console.log("💻: Retrieving a particular score of given score id at the backend...",req.params.scoreId)
   const score: Score | null = await scores.findOne(new ObjectId(req.params.scoreId))
   if (score) {
@@ -177,9 +186,7 @@ app.get("/api/score/:scoreId", async (req, res) => {
   }
 })
 
-
-
-app.put("/api/score/:scoreId/newnote", async (req, res) => {
+app.put("/api/score/:scoreId/newnote", checkAuthenticated, async (req, res) => {
   console.log("💻: Add a new note...")
   const note: Note = req.body
 
@@ -195,11 +202,9 @@ app.put("/api/score/:scoreId/newnote", async (req, res) => {
     console.log("💻: Adding a new note failed - nothing is modified ❓")
     res.status(500)
   }
-  
-  
 })
 
-app.put("/api/score/:scoreId", async(req, res) => {
+app.put("/api/score/:scoreId", checkAuthenticated, async(req, res) => {
   console.log("💻: Updating the score's setting...")
   const score = req.body
 
