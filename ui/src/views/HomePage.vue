@@ -38,7 +38,7 @@ async function refresh() {
   } else { // admin fetch
     try {
       console.log("- acessing all scores through api (admin)")
-      response = await fetch("/api/score/all");
+      response = await fetch("/api/scores/all");
     } catch (error) {
       console.error('- failed to fetch scores (admin):', error);
       alert('An error occurred while fetching all scores for admin.');
