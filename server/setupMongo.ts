@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb'
 import {user1, aliceScore1} from './data'
 
 // Connection URL
-const url = 'mongodb://127.0.0.1:27017'
+const url = 'mongodb://db'
 const client = new MongoClient(url)
 
 

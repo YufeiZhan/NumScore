@@ -119,7 +119,7 @@
 
 <script setup lang="ts">
 import { watch, onMounted, ref, Ref, inject } from 'vue'
-import { Score, Note } from '../../../server/data'
+import { Score, Note } from '../../data'
 import SingleNote from '../components/SingleNote.vue'
 
 const score: Ref<Score> | Ref<undefined> = ref(undefined)

@@ -6,15 +6,21 @@ import session from 'express-session'
 import cors from 'cors'
 import { Issuer, Strategy, generators } from 'openid-client'
 import passport from 'passport'
+import { Strategy as CustomStrategy } from 'passport-custom'
 import { gitlab } from "./secrets"
 import MongoStore from 'connect-mongo'
 import { Collection, Db, MongoClient, ObjectId } from 'mongodb'
 import { ScoreRolePair } from './data'
 import { Score, User, Note } from './data'
 
+const DISABLE_SECURITY = process.env.DISABLE_SECURITY
+const passportStrategies = [
+  ...(DISABLE_SECURITY ? ["disable-security"] : []),
+  "oidc",
+]
 
 // set up Mongo
-const url = 'mongodb://127.0.0.1:27017'
+const url = process.env.MONGO_URL || 'mongodb://db'
 const client = new MongoClient(url)
 let db: Db
 let scores: Collection<Score> // a collection of db
@@ -24,6 +30,7 @@ const OPERATOR_GROUP_ID = process.env.GROUP || "" //if given NumScoreAdmin then 
 // set up Express, body parsing for both JSON and URL encoded
 const app = express()
 const port = parseInt(process.env.PORT) || 8131
+const externalPort = parseInt(process.env.EXTERNAL_PORT) || port
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
@@ -33,7 +40,7 @@ app.use(expressPinoLogger({ logger }))
 
 // set up CORS - can do multiple origins 
 app.use(cors({
-  origin: ["http://localhost:8130",],
+  origin: ["http://localhost:8130", "http://localhost:31000"],
   credentials: true,
 }))
 
@@ -47,7 +54,7 @@ app.use(session({
   // the default store is memory-backed, so all sessions will be forgotten every time the server restarts
   // uncomment the following to use a Mongo-backed store that will work with a load balancer
   store: MongoStore.create({
-    mongoUrl: 'mongodb://127.0.0.1:27017',
+    mongoUrl: url,
     ttl: 14 * 24 * 60 * 60 // 14 days
   })
 }))
@@ -92,13 +99,13 @@ function checkRole(requiredRoles: string[]) {
 }
 
 // app routes
-app.get('/api/login', passport.authenticate('oidc', {
-  successReturnToOrRedirect: "http://localhost:8130/"
+app.get('/api/login', passport.authenticate(passportStrategies, {
+  successReturnToOrRedirect: "/home"
 }))
 
-app.get('/api/login-callback', passport.authenticate('oidc', {
-  successReturnToOrRedirect: 'http://localhost:8130/home',
-  failureRedirect: 'http://localhost:8130/',
+app.get('/api/login-callback', passport.authenticate(passportStrategies, {
+  successReturnToOrRedirect: '/home',
+  failureRedirect: '/',
 }))
 
 app.get('/api/user', checkAuthenticated, (req, res) => {
@@ -131,7 +138,7 @@ app.get("/api/scores", checkAuthenticated, checkRole(["user"]), async (req, res)
     res.status(404)
   } else {
     const user: User | null = await users.findOne({ name })
-    console.log("- The user retreived from database using the OICD username:", user._id)
+    console.log("- The user retreived from database using the OICD username:", user?._id)
 
     if (user) {
       console.log("- User exists: retrieve scores from db")
@@ -235,163 +242,21 @@ app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async(re
   }
 })
 
-// app.put("/api/customer/:customerId/draft-order", async (req, res) => {
-//   const order: DraftOrder = req.body
-
-//   // TODO: validate customerId
-
-//   const result = await orders.updateOne(
-//     {
-//       customerId: req.params.customerId,
-//       state: "draft",
-//     },
-//     {
-//       $set: { 
-//         ingredients: order.ingredients
-//       }
-//     },
-//     {
-//       upsert: true // if not found, make a new document: update otherwise make a new one,
-//     }              // which simplies the logic to check wether that order exists or not
-//   )
-//   res.status(200).json({ status: "ok" })
-// })
-
-// app.get("/api/possible-ingredients", (req, res) => {
-//   res.status(200).json(possibleIngredients)
-// })
-
-// app.get("/api/orders", async (req, res) => {
-//   res.status(200).json(await orders.find({ state: { $ne: "draft" }}).toArray())
-// })
-
-// app.get("/api/customer/:customerId", async (req, res) => {
-//   const _id = req.params.customerId
-//   const customer: Partial<CustomerWithOrders> | null = await customers.findOne({ _id })
-//   if (customer == null) {
-//     res.status(404).json({ _id })
-//     return
-//   }
-//   customer.orders = await orders.find({ customerId: _id, state: { $ne: "draft" } }).toArray()
-//   res.status(200).json(customer)
-// })
-
-// app.get("/api/operator/:operatorId", async (req, res) => {
-//   const _id = req.params.operatorId
-//   const operator: Partial<OperatorWithOrders> | null = await operators.findOne({ _id })
-//   if (operator == null) {
-//     res.status(404).json({ _id })
-//     return
-//   }
-//   operator.orders = await orders.find({ operatorId: _id }).toArray()
-//   res.status(200).json(operator)
-// })
-
-// app.get("/api/customer/:customerId/draft-order", async (req, res) => {
-//   const { customerId } = req.params
-
-//   // TODO: validate customerId
-
-//   const draftOrder = await orders.findOne({ state: "draft", customerId })
-//   res.status(200).json(draftOrder || { customerId, ingredients: [] }) //if nothing found, create a legit one
-// })
-
-// app.put("/api/customer/:customerId/draft-order", async (req, res) => {
-//   const order: DraftOrder = req.body
-
-//   // TODO: validate customerId
-
-//   const result = await orders.updateOne(
-//     {
-//       customerId: req.params.customerId,
-//       state: "draft",
-//     },
-//     {
-//       $set: { 
-//         ingredients: order.ingredients
-//       }
-//     },
-//     {
-//       upsert: true // if not found, make a new document: update otherwise make a new one,
-//     }              // which simplies the logic to check wether that order exists or not
-//   )
-//   res.status(200).json({ status: "ok" })
-// })
-
-
-// app.post("/api/customer/:customerId/submit-draft-order", async (req, res) => {
-//   const result = await orders.updateOne( 
-//     { // find the order with this specified customer id and state in 'draft'
-//       customerId: req.params.customerId,
-//       state: "draft",
-//     },
-//     {
-//       $set: { // operator in MongoDB that sets specified key-value pairs
-//         state: "queued",
-//       }
-//     }
-//   )
-//   if (result.modifiedCount === 0) {
-//     res.status(400).json({ error: "no draft order" })
-//     return
-//   }
-//   res.status(200).json({ status: "ok" })
-// })
-
-// app.put("/api/order/:orderId", async (req, res) => {
-//   const order: Order = req.body
-
-//   // TODO: validate order object
-
-//   const condition: any = {
-//     _id: new ObjectId(req.params.orderId),
-//     state: { 
-//       $in: [
-//         // because PUT is idempotent, ok to call PUT twice in a row with the existing state
-//         order.state
-//       ]
-//     },
-//   }
-//   switch (order.state) {
-//     case "blending":
-//       condition.state.$in.push("queued")
-//       // can only go to blending state if no operator assigned (or is the current user, due to idempotency)
-//       condition.$or = [{ operatorId: { $exists: false }}, { operatorId: order.operatorId }]
-//       break
-//     case "done":
-//       condition.state.$in.push("blending")
-//       condition.operatorId = order.operatorId
-//       break
-//     default:
-//       // invalid state
-//       res.status(400).json({ error: "invalid state" })
-//       return
-//   }
-
-//   const result = await orders.updateOne(
-//     condition,
-//     {
-//       $set: {
-//         state: order.state,
-//         operatorId: order.operatorId,
-//       }
-//     }
-//   )
-
-//   if (result.matchedCount === 0) {
-//     res.status(400).json({ error: "orderId does not exist or state change not allowed" })
-//     return
-//   }
-//   res.status(200).json({ status: "ok" })
-// })
-
-
 // connect to Mongo and OpenID, and start the server
 client.connect().then(async () => {
   console.log('💻: Connected successfully to MongoDB')
   db = client.db("numscore")
   scores = db.collection('scores')
   users = db.collection('users')
+
+  passport.use("disable-security", new CustomStrategy((req, done) => {
+    if (req.query.key !== DISABLE_SECURITY) {
+      console.log("you must supply ?key=" + DISABLE_SECURITY + " to log in via DISABLE_SECURITY")
+      done(null, false)
+    } else {
+      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role) })
+    }
+  }))
 
   // why is this bracket needed?
   {
@@ -401,7 +266,7 @@ client.connect().then(async () => {
       const params = {
         scope: 'openid profile email', //openid has to be one of it
         nonce: generators.nonce(),
-        redirect_uri: 'http://localhost:8131/api/login-callback',
+        redirect_uri: `http://localhost:${externalPort}/api/login-callback`,
         state: generators.state(),
       }
 

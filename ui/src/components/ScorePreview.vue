@@ -10,7 +10,7 @@
 </template>
   
 <script setup lang="ts">
-  import { Score } from '../../../server/data'
+  import { Score } from '../../data'
   
   // props
   interface Props {

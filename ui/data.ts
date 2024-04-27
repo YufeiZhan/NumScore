@@ -1,5 +1,5 @@
 export interface User {
-  _id: string // xxx uses the 'sub' field of Gitlab, which is the unique Gitlab ID of the user
+  _id: string // uses the 'sub' field of Gitlab, which is the unique Gitlab ID of the user
   name: string // the name user wants to use in this application, default to be Gitlab's 'nickname' field
   email: string // same as the 'email' field of Gitlab
   password: string | null // default ot be null because of OIDC, user can set up one lateron
@@ -7,7 +7,7 @@ export interface User {
 }
 
 export interface Score {
-  _id?: string // let database generates id
+  _id: string // set to be {title}-{user._id} format to ensure uniqueness
   title?: string | null
   author?: string | null
   key?: 'C'|'D'|'E'|'F'|'G'|'A'|'B'|'C#'|'D#'|'#F'|'#G'|'A#'|'Db'|'Eb'|'Gb'|'Ab'|'Bb'| null
