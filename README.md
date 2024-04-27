@@ -28,13 +28,14 @@ Specifically for a particular score, the user can be either "creator", "editor" 
 
 ## Todo
 - [x] Tech stack: responsive Vue.router frontend, Node backend, MongoDB database
-- [x] Use OIDC for user login/authentication
+- [x] Use OIDC for user login/authentication 
 - [x] A form (besides login) showing at least 4 fields
-- [] Supports multiple authenticated users
+- [x] Supports multiple authenticated users (managed using database)
+- [] Load-balanced scale-out REST API
 - [] Basic E2E test suite
 - [] Run on Kubernetes
 - [] Extra 1: CI/CD pipeline
-- [] Extra 2: RBAC - 
+- [x] Extra 2: RBAC
 - [] Show project in mobile device
 - [] Concurrency: when 1 user submits while the other user didn't refresh and tried to submit too
 
