@@ -78,7 +78,7 @@ passport.deserializeUser((user, done) => {
 // authentication middleware
 function checkAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (!req.isAuthenticated()) {
-    res.status(401).json({ message: "Please log in first. 🎵🎵"})
+    res.status(401).json({ message: "Please log in first. 🎵🎵" })
     return
   }
   next()
@@ -93,7 +93,7 @@ function checkRole(requiredRoles: string[]) {
       next(); // User has one of the required roles, proceed
     } else {
       res.status(403).json({ message: "Access denied: Insufficient permissions." });
-      return 
+      return
     }
   };
 }
@@ -110,10 +110,10 @@ app.get('/api/login-callback', passport.authenticate(passportStrategies, {
 
 app.get('/api/user', checkAuthenticated, (req, res) => {
   console.log("💻: Retrieving user...")
-  if(req.user){
+  if (req.user) {
     console.log("💻: Rerieved user! ✅")
     res.json(req.user)
-  } else{
+  } else {
     console.log("💻: req.user not found ❓")
     res.json({})
   }
@@ -133,41 +133,37 @@ app.post("/api/logout", (req, res, next) => {
 app.get("/api/scores", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Retrieving all scores for the logged in user...")
   const OIDCuser = req.user as any
-  const name = OIDCuser.preferred_username
-  if (!name) {
-    res.status(404)
-  } else {
-    const user: User | null = await users.findOne({ name })
-    console.log("- The user retreived from database using the OICD username:", user?._id)
+  
+  const user: User | null = await users.findOne({ _id: OIDCuser.sub })
+  console.log("- The user retreived from database using the OICD username:", user?._id)
 
-    if (user) {
-      console.log("- User exists: retrieve scores from db")
-      const scoresInfo: ScoreRolePair[] = user.scores
-      const userScores: Score[] = []
-      for (const scoreRolePair of scoresInfo) {
-        const _id = scoreRolePair.scoreId
+  if (user) {
+    console.log("- User exists: retrieve scores from db")
+    const scoresInfo: ScoreRolePair[] = user.scores
+    const userScores: Score[] = []
+    for (const scoreRolePair of scoresInfo) {
+      const _id = scoreRolePair.scoreId
 
-        const score: Score = await scores.findOne({ _id })
-        userScores.push(score)
-      }
-      res.status(200).json(userScores || [])
-    } else { // If user not in database yet, add user to the database
-      console.log("- User not exists yet: add user to the database using Gitlab's credentials")
-      const newUser: User = {_id: OIDCuser.sub, name: OIDCuser.preferred_username, email: OIDCuser.email,password: null,scores: []}
-      try { // Sync the new user in the users collection
-        users.insertOne(newUser)
-        console.log("💻: Completes retrieving all scores for the new user! ✅")
-        res.status(200).json([])
-      } catch (e) {
-        console.error("Error creating user:", e)
-        console.log("💻: Error creating new user from OICD in the database ❓")
-        res.status(500)
-      }
+      const score: Score = await scores.findOne({ _id })
+      userScores.push(score)
+    }
+    res.status(200).json(userScores || [])
+  } else { // If user not in database yet, add user to the database
+    console.log("- User not exists yet: add user to the database using Gitlab's credentials")
+    const newUser: User = { _id: OIDCuser.sub, name: OIDCuser.preferred_username, email: OIDCuser.email, password: null, scores: [] }
+    try { // Sync the new user in the users collection
+      users.insertOne(newUser)
+      console.log("💻: Completes retrieving all scores for the new user! ✅")
+      res.status(200).json([])
+    } catch (e) {
+      console.error("Error creating user:", e)
+      console.log("💻: Error creating new user from OICD in the database ❓")
+      res.status(500)
     }
   }
 })
 
-app.get("/api/scores/all", checkAuthenticated, checkRole(["admin"]),async(req,res) => {
+app.get("/api/scores/all", checkAuthenticated, checkRole(["admin"]), async (req, res) => {
   console.log("💻: Retreiving all scores from the database (for admin).")
   const retrievedScores: Score[] = await scores.find({}).toArray()
   res.status(200).json(retrievedScores)
@@ -195,7 +191,7 @@ app.get("/api/score/new", checkAuthenticated, checkRole(["user"]), async (req, r
 })
 
 app.get("/api/score/:scoreId", checkAuthenticated, async (req, res) => {
-  console.log("💻: Retrieving a particular score of given score id at the backend...",req.params.scoreId)
+  console.log("💻: Retrieving a particular score of given score id at the backend...", req.params.scoreId)
   const score: Score | null = await scores.findOne(new ObjectId(req.params.scoreId))
   if (score) {
     console.log("💻: Retrieved the wanted score! ✅")
@@ -211,11 +207,11 @@ app.put("/api/score/:scoreId/newnote", checkAuthenticated, checkRole(["user"]), 
   const note: Note = req.body
 
   const result = await scores.updateOne(
-    {_id : new ObjectId(req.params.scoreId) as any},
+    { _id: new ObjectId(req.params.scoreId) as any },
     { $push: { notes: note } }
   )
 
-  if (result.modifiedCount == 1){
+  if (result.modifiedCount == 1) {
     console.log("💻: Adding a new note completed! ✅")
     res.status(200).json({ status: "ok" })
   } else {
@@ -224,16 +220,16 @@ app.put("/api/score/:scoreId/newnote", checkAuthenticated, checkRole(["user"]), 
   }
 })
 
-app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async(req, res) => {
+app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Updating the score's setting...")
   const score = req.body
 
   const result = await scores.updateOne(
     { _id: new ObjectId(req.params.scoreId) as any },
-    { $set: { title:score.title, key:score.key, timeSignatureTop:score.timeSignatureTop, timeSignatureBase:score.timeSignatureBase,time:new Date()}},
+    { $set: { title: score.title, key: score.key, timeSignatureTop: score.timeSignatureTop, timeSignatureBase: score.timeSignatureBase, time: new Date() } },
   )
 
-  if (result.modifiedCount == 1){
+  if (result.modifiedCount == 1) {
     console.log("💻: Updating the score's setting completes! ✅")
     res.status(200).json({ status: "ok" })
   } else {
@@ -273,7 +269,7 @@ client.connect().then(async () => {
       function verify(tokenSet: any, userInfo: any, done: (error: any, user: any) => void) {
         console.log('💻: userInfo', userInfo)
         console.log('💻: tokenSet', tokenSet)
-        userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["user"] 
+        userInfo.roles = userInfo.groups.includes(OPERATOR_GROUP_ID) ? ["admin"] : ["user"]
         return done(null, userInfo)
       }
 

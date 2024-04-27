@@ -1,5 +1,5 @@
 export interface User {
-  _id: string // xxx uses the 'sub' field of Gitlab, which is the unique Gitlab ID of the user
+  _id: string // uses the 'sub' field of Gitlab, which is the unique Gitlab ID of the user
   name: string // the name user wants to use in this application, default to be Gitlab's 'nickname' field
   email: string // same as the 'email' field of Gitlab
   password: string | null // default ot be null because of OIDC, user can set up one lateron
@@ -31,14 +31,6 @@ export interface Note {
   duration: 1 | 0.5 | 0.25 | 0.125 | 0.0625 | 0.03125 | 0.015625 // 1 - 1/64
   pitch: 0 | 1 | 2 | 3 | -1 | -2 | -3 // positive means high pitch and negative means low pitch
   color?: "black" | "blue" | "red"
-}
-
-export const user1 : User = {
-  _id: '1',
-  name: 'yz858',
-  email: 'alice@duke.edu',
-  password: null,
-  scores: [{scoreId: 'Alphabet Song-1', role: 'Creator'}]
 }
 
 export const aliceScore1 : Score = {

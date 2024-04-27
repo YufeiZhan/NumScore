@@ -1,10 +1,16 @@
 # NumScore
 
-## Development
+<!-- ## Development Steps
 1. Set up MongoDB via Docker using `docker run -p 127.0.0.1:27017:27017 -d --rm --name mongo mongo:7.0.5`
 2. Move into the **/server** folder, install all packages using `npm install` and set up using `npm run setup`, then run using `npm run start` as normal user or `GROUP=numscoreadmin npm run start` as **admin**
 3. Move into the **/ui** folder and install all packages using `npm install` and run using `npm run dev`
-4. Test in browser using `localhost:8130` rather than `127.0.0.1:8130`
+4. Test in browser using `localhost:8130` rather than `127.0.0.1:8130` -->
+
+## Usage
+1. Clone the repo
+2. Inside the **/server** folder, run `docker build -t numscore-server`
+3. Inside the **/ui** folder, run `docker build -t numscore-ui`
+4. In the root **/numscore** folder, run `kubectl create -f k8s/` for the first time and run `kubectl delete -f k8s/` beforehand if errored
 
 ## RBAC
 There two types of users with difference access level to the various features of the app:
