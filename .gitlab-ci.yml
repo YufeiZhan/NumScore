@@ -25,8 +25,13 @@ build-server:
 
 deploy:
   stage: deploy
+  before_script:
+    - echo "Before K8s deployment script"
+    - echo $PWD
   script:
+    - kubectl config get-contexts
     - kubectl delete -f k8s/
+    - KUBECONFIG=$HOME/.kube/config
     - kubectl create -f k8s/
 
 e2e-test:
