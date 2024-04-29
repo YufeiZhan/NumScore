@@ -33,10 +33,18 @@ export interface Note {
   color?: "black" | "blue" | "red"
 }
 
+// export const user1 : User = {
+//   _id: 'dummyuser1',
+//   name: 'dm111',
+//   email: 'dummy@duke.edu',
+//   password: null,
+//   scores: [{scoreId: 'Alphabet Song-1', role: 'Creator'}]
+// }
+
 export const aliceScore1 : Score = {
   _id: 'Alphabet Song-1', // unique id is score title-_id
   title: 'Alphabet Song',
-  author: 'Alice',
+  author: 'Alice', 
   key: 'C',
   timeSignatureTop: 4,
   timeSignatureBase: 4,

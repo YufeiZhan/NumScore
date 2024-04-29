@@ -5,23 +5,23 @@
             style="position:relative; top:10px;left:10px;"><b-icon-gear scale="1.5"></b-icon-gear></b-button>
         <b-modal id="configure-model" title="Configure Score Setting" hide-header-close @ok="handleScoreSubmit">
             <form @submit="handleScoreSubmit">
-                <b-form-group id="input-group-1" label="Title:" label-for="score-title-input">
+                <b-form-group id="input-group-11" label="Title:" label-for="score-title-input">
                     <b-form-input id="score-title-input" v-model="formScore.title" placeholder="Enter title"
                         required></b-form-input>
                 </b-form-group>
-                <b-form-group id="input-group-2" label="Author:" label-for="score-author-input">
+                <b-form-group id="input-group-12" label="Author:" label-for="score-author-input">
                     <b-form-input id="score-author-input" v-model="formScore.author" placeholder="Enter author"
                         required></b-form-input>
                 </b-form-group>
-                <b-form-group id="input-group-3" label="Key:" label-for="score-key-input">
+                <b-form-group id="input-group-13" label="Key:" label-for="score-key-input">
                     <b-form-select id="score-key-input" v-model="formScore.key" :options="keys"
                         required></b-form-select>
                 </b-form-group>
-                <b-form-group id="input-group-4" label="Top Time Signature:" label-for="score-ts-top-input">
+                <b-form-group id="input-group-14" label="Top Time Signature:" label-for="score-ts-top-input">
                     <b-form-input id="score-ts-top-input" v-model="formScore.timeSignatureTop" type="number"
                         placeholder="Enter top time sig" required></b-form-input>
                 </b-form-group>
-                <b-form-group id="input-group-5" label="Bottom Time Signature:" label-for="score-ts-bot-input">
+                <b-form-group id="input-group-15" label="Bottom Time Signature:" label-for="score-ts-bot-input">
                     <b-form-input id="score-ts-bot-input" v-model="formScore.timeSignatureBase" type="number"
                         placeholder="Enter base time sig" required></b-form-input>
                 </b-form-group>
@@ -74,22 +74,22 @@
                 <div v-for="number in 6" :key="number" class="hidden-note-deco">·</div>
             </div>
             <b-modal id="new-note-model" title="Creating New Note" hide-header-close @ok="handleNoteSubmit">
-                <form @submit="handleSubmit">
-                    <b-form-group id="input-group-1" label="Note:" label-for="note-input"
+                <form @submit="handleNoteSubmit">
+                    <b-form-group id="input-group-21" label="Note:" label-for="note-input"
                         invalid-feedback="Note is required">
                         <b-form-select id="note-input" v-model="form.note" :options="notes" required></b-form-select>
                     </b-form-group>
-                    <b-form-group id="input-group-2" label="Pitch:" label-for="pitch-input"
+                    <b-form-group id="input-group-22" label="Pitch:" label-for="pitch-input"
                         invalid-feedback="Pitch is required">
                         <b-form-select id="pitch-input" v-model="form.pitch" :options="pitches"
                             required></b-form-select>
                     </b-form-group>
-                    <b-form-group id="input-group-3" label="Duration:" label-for="duration-input"
+                    <b-form-group id="input-group-23" label="Duration:" label-for="duration-input"
                         invalid-feedback="Duration is required">
                         <b-form-select id="duration-input" v-model="form.duration" :options="durations"
                             required></b-form-select>
                     </b-form-group>
-                    <b-form-group id="input-group-4" label="Color:" label-for="color-input"
+                    <b-form-group id="input-group-24" label="Color:" label-for="color-input"
                         invalid-feedback="Color is required">
                         <b-form-select id="color-input" v-model="form.color" :options="colors" required></b-form-select>
                     </b-form-group>
@@ -100,8 +100,18 @@
 
         <!-- Toolbox -->
         <div v-if="user?.roles?.includes('user')" style="position: fixed; right: 10px; bottom: 0px;">
-            <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-share variant="light"
-                    scale="1.4"></b-icon-share></b-avatar>
+            <b-avatar button v-if="showIcons" @click="showShareModal" class="avatar-toolbox" size="lg"><b-icon-share
+                    variant="light" scale="1.4"></b-icon-share></b-avatar>
+            <b-modal id="share-model" v-model="shareModalUp" title="Share Score to Others" hide-header-close @ok="handleScoreShare">
+                <form @submit="handleScoreShare">
+                    <b-form-group id="input-group-31" label="Email:" label-for="share-email-input">
+                        <b-form-input id="share-email-input" v-model="shareEmail" type="email"  placeholder="Enter email to share" required></b-form-input>
+                    </b-form-group>
+                    <b-form-group id="input-group-32" label="Role:" label-for="role-input" invalid-feedback="Role is required">
+                        <b-form-select id="role-input" v-model="shareRole" :options="roles" required></b-form-select>
+                    </b-form-group>
+                </form>
+            </b-modal>
             <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-download variant="light"
                     scale="1.5"></b-icon-download></b-avatar>
             <b-avatar v-if="showIcons" class="avatar-toolbox" size="lg"><b-icon-question variant="light"
@@ -119,12 +129,13 @@
 
 <script setup lang="ts">
 import { watch, onMounted, ref, Ref, inject } from 'vue'
-import { Score, Note } from '../../data'
+import { Score, Note,Role } from '../../data'
 import SingleNote from '../components/SingleNote.vue'
 
 const score: Ref<Score> | Ref<undefined> = ref(undefined)
 const showIcons: Ref<boolean> = ref(false)
 const user: Ref<any> = inject("user")!
+const shareModalUp = ref(false)
 
 // Note Form
 const defaultForm = { note: 1, pitch: 0, duration: 1, color: "black" }
@@ -137,6 +148,11 @@ const colors = ["black", "blue", "red"]
 // Score Form
 const formScore = { title: score.value?.title, author: score.value?.author, key: score.value?.key, timeSignatureTop: score.value?.timeSignatureTop, timeSignatureBase: score.value?.timeSignatureBase }
 const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D#', '#F', '#G', 'A#', 'Db', 'Eb', 'Gb', 'Ab', 'Bb']
+
+// Share Form
+const shareEmail = ref("")
+const shareRole : Ref<Role> = ref(null)
+const roles = ['Creator', 'Editor', 'Viewer']
 
 // props
 interface Props {
@@ -236,14 +252,48 @@ async function handleScoreSubmit() {
             headers: { "Content-Type": "application/json", },
             method: "PUT",
             body: JSON.stringify(formScore)
-    })
-    
-    if (response.ok){
+        })
+
+    if (response.ok) {
         console.log("🎨: Submitting new score configuration completes ✅")
         window.location.reload();
     } else {
         console.log("🎨: Submitting new score configuration errored ❓")
         alert("Submitting new score configuration errored.")
     }
+}
+
+
+function showShareModal() {
+    shareModalUp.value = true
+}
+
+async function handleScoreShare(){
+    console.log("🎨: Sharing score...")
+    shareModalUp.value = false
+
+    const data = {email:shareEmail, role: shareRole}
+
+    const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/newrole",
+        {
+            headers: { "Content-Type": "application/json", },
+            method: "PUT",
+            body: JSON.stringify(data)
+        })
+
+    if (response.ok) {
+        console.log("🎨: Score shared ✅")
+        window.location.reload();
+    } else {
+        console.log("🎨: Sharing score errored ❓")
+        alert("Sharing score errored.")
+    }  
+
+    resetShareForm()
+}
+
+function resetShareForm(){
+    shareEmail.value = ""
+    shareRole.value = null
 }
 </script>

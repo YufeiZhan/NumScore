@@ -198,7 +198,7 @@ app.get("/api/score/:scoreId", checkAuthenticated, async (req, res) => {
     return res.status(200).json(score)
   } else {
     console.log("💻: No score of that id is found.")
-    return res.status(404)
+    return res.status(500)
   }
 })
 
@@ -211,12 +211,17 @@ app.put("/api/score/:scoreId/newnote", checkAuthenticated, checkRole(["user"]), 
     { $push: { notes: note } }
   )
 
+  if (result.matchedCount < 1){ // didn't find the score
+    console.log("💻: No such score is found so no update. ❓")
+    res.status(500).json({ message: "No score with the specified id is found." })
+  }
+
   if (result.modifiedCount == 1) {
     console.log("💻: Adding a new note completed! ✅")
     res.status(200).json({ status: "ok" })
   } else {
-    console.log("💻: Adding a new note failed - nothing is modified ❓")
-    res.status(500)
+    console.log("💻: Score found but no changes. ✅")
+    res.status(200).json({ message: "Score found but nothing get modified." })
   }
 })
 
@@ -229,12 +234,57 @@ app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async (r
     { $set: { title: score.title, key: score.key, timeSignatureTop: score.timeSignatureTop, timeSignatureBase: score.timeSignatureBase, time: new Date() } },
   )
 
-  if (result.modifiedCount == 1) {
+  if (result.matchedCount < 1){ // didn't find the score
+    console.log("💻: No such score is found so no update. ❓")
+    res.status(500).json({ message: "No score with the specified id is found." })
+  }
+
+  if (result.modifiedCount == 1) { 
     console.log("💻: Updating the score's setting completes! ✅")
     res.status(200).json({ status: "ok" })
-  } else {
-    console.log("💻: Updating score failed - nothing is modified ❓")
-    res.status(500)
+  } else { // didn't change anything 
+    console.log("💻: Entry found but nothing got modified ✅")
+    res.status(200).json({ message: "Entry found but nothing got modified." })
+  }
+})
+
+app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), async (req, res) => {
+  console.log("💻: Sharing the score to other users...")
+  const scoreId = req.params.scoreId
+  const email = req.body.email
+  const role = req.body.role
+
+  // see whether the user already has a role associated with the score
+  const updateResult = await users.updateOne(
+    { email, "scores.scoreId": scoreId },
+    { $set: { "scores.$.role": role } }
+  );
+
+  if (updateResult.matchedCount < 1){ // not pre-existed so adds a new entry
+    console.log("💻: Entry isn't found so adding new entry...")
+    const pushResult = await users.updateOne(
+      { email },
+      { $push: { scores: { scoreId, role } } }
+    );
+
+    if (pushResult.matchedCount < 1){ // no matching email
+      console.log("💻: No user with the email found. ❓")
+      res.status(500).json({ message: "User not valid with the email given." })
+    } else {
+      if (pushResult.modifiedCount == 1) { // new entry added
+        console.log("💻: Role of the pre-existed user changed! ✅")
+        res.status(200).json({ status: "ok" })
+      } // push action always adds a new entry so no else here
+    }
+
+  } else { // already an entry
+    if (updateResult.modifiedCount == 1) {
+      console.log("💻: Role of the pre-existed user changed! ✅")
+      res.status(200).json({ status: "ok" })
+    } else { // didn't change anything 
+      console.log("💻: Role of the pre-existing user remained. ✅")
+      res.status(200).json({ message: "User found but no new changes." })
+    }
   }
 })
 

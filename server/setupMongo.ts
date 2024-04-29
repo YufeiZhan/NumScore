@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb'
-import {user1, aliceScore1} from './data'
+import {aliceScore1} from './data'
 
 // Connection URL
 const url = 'mongodb://db'
