@@ -12,7 +12,8 @@
 3. Inside the **/ui** folder, run `docker build -t numscore-ui .`
 4. In the root **/numscore** folder, run `kubectl create -f k8s/` for the first time and run `kubectl delete -f k8s/` beforehand if errored
 5. Access the service with `localhost:31000`
-6. To connect with the mongo database, use `kubectl port-forward db-679fd84bdc-ftbsz 37017:27017` and then use `localhost:37017` to establish connection
+6. To connect with the mongo database, find out the db's pod name using `kubectl get pods`, then use `kubectl port-forward <POD_NAME> 37017:27017` to expose the database externally via `localhost:37017`
+7. To access the dummy user for testing purpose, use `http://localhost:31000/api/login?key=foo-bar-baz&user=dalton&role=user`
 
 ## RBAC
 There two types of users with difference access level to the various features of the app:

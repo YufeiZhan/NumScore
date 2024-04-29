@@ -272,7 +272,7 @@ async function handleScoreShare(){
     console.log("🎨: Sharing score...")
     shareModalUp.value = false
 
-    const data = {email:shareEmail, role: shareRole}
+    const data = {email:shareEmail.value, role: shareRole.value}
 
     const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/newrole",
         {
@@ -286,7 +286,7 @@ async function handleScoreShare(){
         window.location.reload();
     } else {
         console.log("🎨: Sharing score errored ❓")
-        alert("Sharing score errored.")
+        alert("Sharing score errored: the user with the provided email is not found.")
     }  
 
     resetShareForm()

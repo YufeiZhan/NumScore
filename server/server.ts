@@ -133,7 +133,7 @@ app.post("/api/logout", (req, res, next) => {
 app.get("/api/scores", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Retrieving all scores for the logged in user...")
   const OIDCuser = req.user as any
-  
+
   const user: User | null = await users.findOne({ _id: OIDCuser.sub })
   console.log("- The user retreived from database using the OICD username:", user?._id)
 
@@ -250,9 +250,10 @@ app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async (r
 
 app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Sharing the score to other users...")
-  const scoreId = req.params.scoreId
+  const scoreId = new ObjectId (req.params.scoreId)
   const email = req.body.email
   const role = req.body.role
+  console.log(email)
 
   // see whether the user already has a role associated with the score
   const updateResult = await users.updateOne(
@@ -300,7 +301,7 @@ client.connect().then(async () => {
       console.log("you must supply ?key=" + DISABLE_SECURITY + " to log in via DISABLE_SECURITY")
       done(null, false)
     } else {
-      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role) })
+      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role), email: "dalton.dummy@duke.edu", sub:"dummy" })
     }
   }))
 
