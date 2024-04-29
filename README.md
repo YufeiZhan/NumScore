@@ -11,6 +11,7 @@
 2. Inside the **/server** folder, run `docker build -t numscore-server .`
 3. Inside the **/ui** folder, run `docker build -t numscore-ui .`
 4. In the root **/numscore** folder, run `kubectl create -f k8s/` for the first time and run `kubectl delete -f k8s/` beforehand if errored
+5. Access the service with `localhost:31000`
 
 ## RBAC
 There two types of users with difference access level to the various features of the app:
@@ -40,7 +41,7 @@ Specifically for a particular score, the user can be either "creator", "editor" 
 - [] Load-balanced scale-out REST API (load balancing gets handled by kubernetes)
 - [] Basic E2E test suite
 - [] Run on Kubernetes
-- [] Extra 1: CI/CD pipeline
+- [x] Extra 1: CI/CD pipeline
 - [x] Extra 2: RBAC
 - [] Show project in mobile device
 - [] Concurrency: when 1 user submits while the other user didn't refresh and tried to submit too
