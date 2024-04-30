@@ -5,6 +5,8 @@
 2. Move into the **/server** folder, install all packages using `npm install` and set up using `npm run setup`, then run using `npm run start` as normal user or `GROUP=numscoreadmin npm run start` as **admin**
 3. Move into the **/ui** folder and install all packages using `npm install` and run using `npm run dev`
 4. Test in browser using `localhost:8130` rather than `127.0.0.1:8130` -->
+## Demo
+[Demo](https://duke.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4ba5ae54-14a5-4a2f-89d1-b162004113a7)
 
 ## Usage
 1. Clone the repo
@@ -40,16 +42,16 @@ Specifically for a particular score, the user can be either "creator", "editor" 
 - [x] Use OIDC for user login/authentication 
 - [x] A form (besides login) showing at least 4 fields
 - [x] Supports multiple authenticated users (managed using database)
-- [] Load-balanced scale-out REST API (load balancing gets handled by kubernetes)
-- [] Basic E2E test suite
+- [x] Load-balanced scale-out REST API (load balancing gets handled by kubernetes)
+- [x] Basic E2E test suite
 - [x] Run on Kubernetes
 - [x] Extra 1: CI/CD pipeline
 - [x] Extra 2: RBAC
-- [] Show project in mobile device
-- [] Concurrency: when 1 user submits while the other user didn't refresh and tried to submit too
+- [x] Show project in mobile device
+- [x] Concurrency: when 1 user submits while the other user didn't refresh and tried to submit too
 
 
-## Submission (5x assignment grades) due **Saturday, April 20, 11:59pm**
+## Submission (5x assignment grades) due **Saturday, April 29, 11:59pm**
 1. Git repo with small commits
 2. Demo video including E2E test (presentation style, everyone appears, explain safe concurrency handling, hack into app using curl)
 
