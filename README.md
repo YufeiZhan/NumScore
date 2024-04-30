@@ -13,7 +13,7 @@
 4. In the root **/numscore** folder, run `kubectl create -f k8s/` for the first time and run `kubectl delete -f k8s/` beforehand if errored
 5. Access the service with `localhost:31000`
 6. To connect with the mongo database, find out the db's pod name using `kubectl get pods`, then use `kubectl port-forward <POD_NAME> 37017:27017` to expose the database externally via `localhost:37017`
-7. To access the dummy user for testing purpose, use `http://localhost:31000/api/login?key=foo-bar-baz&user=dalton&role=user`
+7. To access the dummy user for testing purpose, use `http://localhost:31000/api/login?key=foo-bar-baz&user=dalton&role=admin`
 
 ## RBAC
 There two types of users with difference access level to the various features of the app:
@@ -42,7 +42,7 @@ Specifically for a particular score, the user can be either "creator", "editor" 
 - [x] Supports multiple authenticated users (managed using database)
 - [] Load-balanced scale-out REST API (load balancing gets handled by kubernetes)
 - [] Basic E2E test suite
-- [] Run on Kubernetes
+- [x] Run on Kubernetes
 - [x] Extra 1: CI/CD pipeline
 - [x] Extra 2: RBAC
 - [] Show project in mobile device

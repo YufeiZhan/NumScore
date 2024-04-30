@@ -50,6 +50,8 @@ async function refresh() {
     if (response?.status === 403) {
       alert('You do not have permission to view this data.');
       scores.value = []; // Clear scores if not authorized
+    } else {
+      alert('An error occurred while fetching the data.');
     }
     return; // Exit the function early
   }

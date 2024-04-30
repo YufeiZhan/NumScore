@@ -211,7 +211,7 @@ app.put("/api/score/:scoreId/newnote", checkAuthenticated, checkRole(["user"]), 
     { $push: { notes: note } }
   )
 
-  if (result.matchedCount < 1){ // didn't find the score
+  if (result.matchedCount < 1) { // didn't find the score
     console.log("💻: No such score is found so no update. ❓")
     res.status(500).json({ message: "No score with the specified id is found." })
   }
@@ -234,12 +234,12 @@ app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async (r
     { $set: { title: score.title, key: score.key, timeSignatureTop: score.timeSignatureTop, timeSignatureBase: score.timeSignatureBase, time: new Date() } },
   )
 
-  if (result.matchedCount < 1){ // didn't find the score
+  if (result.matchedCount < 1) { // didn't find the score
     console.log("💻: No such score is found so no update. ❓")
     res.status(500).json({ message: "No score with the specified id is found." })
   }
 
-  if (result.modifiedCount == 1) { 
+  if (result.modifiedCount == 1) {
     console.log("💻: Updating the score's setting completes! ✅")
     res.status(200).json({ status: "ok" })
   } else { // didn't change anything 
@@ -250,7 +250,7 @@ app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async (r
 
 app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Sharing the score to other users...")
-  const scoreId = new ObjectId (req.params.scoreId)
+  const scoreId = new ObjectId(req.params.scoreId)
   const email = req.body.email
   const role = req.body.role
   console.log(email)
@@ -261,14 +261,14 @@ app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), 
     { $set: { "scores.$.role": role } }
   );
 
-  if (updateResult.matchedCount < 1){ // not pre-existed so adds a new entry
+  if (updateResult.matchedCount < 1) { // not pre-existed so adds a new entry
     console.log("💻: Entry isn't found so adding new entry...")
     const pushResult = await users.updateOne(
       { email },
       { $push: { scores: { scoreId, role } } }
     );
 
-    if (pushResult.matchedCount < 1){ // no matching email
+    if (pushResult.matchedCount < 1) { // no matching email
       console.log("💻: No user with the email found. ❓")
       res.status(500).json({ message: "User not valid with the email given." })
     } else {
@@ -289,6 +289,43 @@ app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), 
   }
 })
 
+
+
+app.delete("/api/score/:scoreID", checkAuthenticated, checkRole(["user", "admin"]), async (req, res) => {
+  console.log("💻: Deleting the score from database...")
+  const scoreId = new ObjectId(req.params.scoreID)
+
+  // delete from scores
+  const scoresResult = await scores.deleteOne({ _id: scoreId })
+
+  if (scoresResult.deletedCount < 1) {
+    console.log("💻: Nothing gets deleted ❓")
+    res.status(200).json({ message: "Nothing gets deleted." })
+  } else {
+    console.log("💻: Score gets deleted ✅")
+
+    //delete from all users the scoreId-role pair
+    const usersResult = await users.updateMany(
+      { "scores.scoreId": scoreId },
+      { $pull: { scores: { scoreId: scoreId } } }
+    )
+
+    if (usersResult.matchedCount == 0) {
+      console.log("💻: No relevant users are found ❓")
+      res.status(500).json({ message: "Database state is not consistent." })
+    } else {
+      console.log(`💻: Found ${usersResult.matchedCount} users related to the score.`)
+      if (usersResult.modifiedCount == usersResult.matchedCount) {
+        console.log("💻: Deleted count equals to matched count. ✅")
+        res.status(200).json({ message: "Score's relevant info is all deleted from database correctly." })
+      } else {
+        console.log("💻: Deleted count is not equal to matched count. ❓")
+        res.status(500).json({ message: "Database state now is not consistent." })
+      }
+    }
+  }
+})
+
 // connect to Mongo and OpenID, and start the server
 client.connect().then(async () => {
   console.log('💻: Connected successfully to MongoDB')
@@ -301,7 +338,7 @@ client.connect().then(async () => {
       console.log("you must supply ?key=" + DISABLE_SECURITY + " to log in via DISABLE_SECURITY")
       done(null, false)
     } else {
-      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role), email: "dalton.dummy@duke.edu", sub:"dummy" })
+      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role), email: "dalton.dummy@duke.edu", sub: "dummy" })
     }
   }))
 

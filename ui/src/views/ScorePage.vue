@@ -164,6 +164,7 @@ const props = withDefaults(defineProps<Props>(), {
     scoreId: undefined,
 })
 
+// retrieves all scores from backend
 async function refresh() {
     console.log("🎨: Accessing Score Page...")
     if (props.scoreId) {
@@ -194,6 +195,7 @@ async function refresh() {
 
 onMounted(refresh)
 
+// decides whether there is a barline behind a specific note at the given index
 function barBehind(index: number): boolean {
     if (index === 0 && score.value?.timeSignatureTop != 1) {
         return false //Assumed for now that the biggest duration is 1 so the first note won't have bar behind anyways
@@ -212,6 +214,7 @@ function barBehind(index: number): boolean {
     }
 }
 
+// gives the total duration of all the notes until the given index (inclusive)
 function durationTill(index: number): number {
     let total = 0;
     for (let i = 0; i <= index; i++) {
@@ -221,12 +224,13 @@ function durationTill(index: number): number {
     return total;
 }
 
+// toggles toolbox icon
 function toolboxOnClick() {
     showIcons.value = !showIcons.value
 }
 
 
-
+// submits notes
 async function handleNoteSubmit() {
     console.log("🎨: Submitting the new note created...")
     const newNote: Note = { number: form.value.note as any, pitch: form.value.pitch as any, duration: form.value.duration as any, color: form.value.color as any }
@@ -245,6 +249,7 @@ function resetForm() {
     form.value = { ...defaultForm }
 }
 
+// submits score configuration
 async function handleScoreSubmit() {
     console.log("🎨: Submitting new score configuration...")
     const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any),
@@ -262,7 +267,6 @@ async function handleScoreSubmit() {
         alert("Submitting new score configuration errored.")
     }
 }
-
 
 function showShareModal() {
     shareModalUp.value = true
