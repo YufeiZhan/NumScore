@@ -3,6 +3,7 @@
       <b-navbar variant="faded" type="light" :class="user?.roles?.includes('admin') ? 'bg-app-admin' : 'bg-app'">
         <!-- Logo -->
         <b-navbar-brand href="#" class="ms-2" >🪕 JIANPU</b-navbar-brand>
+        <b-link v-if="user?.name" :to="`/home`"><b-icon-house variant="light" scale="1.5"></b-icon-house></b-link>
 
         <!-- Login / Signup -->
         <b-navbar-nav class="ms-auto">

@@ -128,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted, ref, Ref, inject } from 'vue'
+import { onMounted, ref, Ref, inject } from 'vue'
 import { Score, Note,Role } from '../../data'
 import SingleNote from '../components/SingleNote.vue'
 
