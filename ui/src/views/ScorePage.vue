@@ -56,22 +56,26 @@
         </div>
 
         <!-- Score Notes -->
-        <div class="ms-5 me-5 mt-5">
-            <div v-for="(note, index) in score?.notes" :key="index" class="note">
+        <div class="m-5">
+            <div v-for="(note, index) in score?.notes" :key="index" style="display: inline-block;">
                 <SingleNote :note="note" class="note" />
-                <div v-if="barBehind(index)" class="note">
-                    <div v-for="number in 4" :key="number" class="hidden-note-deco">·</div>
+                <b-button v-if="barBehind(index)" class="note" squared variant="outline-dark">
+                    <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
                     <span> | </span>
-                    <div v-for="number in 4" :key="number" class="hidden-note-deco">·</div>
+                    <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
                     <div v-for="number in 4" :key="number" class="hidden-note-deco">-</div>
-                </div>
+                </b-button>
             </div>
 
             <!-- Add New Note-->
             <div v-if="user?.roles?.includes('user')" class="note">
-                <b-button v-b-modal="'new-note-model'" variant="light"><b-icon-plus
-                        scale="1.5"></b-icon-plus></b-button>
-                <div v-for="number in 6" :key="number" class="hidden-note-deco">·</div>
+                <b-button v-b-modal="'new-note-model'" variant="light">
+                    <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
+                    <div v-for="number in 2" :key="number" class="hidden-note-deco">-</div>
+                    <b-icon-plus scale="1.5"></b-icon-plus>
+                    <div v-for="number in 2" :key="number" class="hidden-note-deco">-</div>
+                    <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
+                </b-button>
             </div>
             <b-modal id="new-note-model" title="Creating New Note" hide-header-close @ok="handleNoteSubmit">
                 <form @submit="handleNoteSubmit">
@@ -102,12 +106,15 @@
         <div v-if="user?.roles?.includes('user')" style="position: fixed; right: 10px; bottom: 0px;">
             <b-avatar button v-if="showIcons" @click="showShareModal" class="avatar-toolbox" size="lg"><b-icon-share
                     variant="light" scale="1.4"></b-icon-share></b-avatar>
-            <b-modal id="share-model" v-model="shareModalUp" title="Share Score to Others" hide-header-close @ok="handleScoreShare">
+            <b-modal id="share-model" v-model="shareModalUp" title="Share Score to Others" hide-header-close
+                @ok="handleScoreShare">
                 <form @submit="handleScoreShare">
                     <b-form-group id="input-group-31" label="Email:" label-for="share-email-input">
-                        <b-form-input id="share-email-input" v-model="shareEmail" type="email"  placeholder="Enter email to share" required></b-form-input>
+                        <b-form-input id="share-email-input" v-model="shareEmail" type="email"
+                            placeholder="Enter email to share" required></b-form-input>
                     </b-form-group>
-                    <b-form-group id="input-group-32" label="Role:" label-for="role-input" invalid-feedback="Role is required">
+                    <b-form-group id="input-group-32" label="Role:" label-for="role-input"
+                        invalid-feedback="Role is required">
                         <b-form-select id="role-input" v-model="shareRole" :options="roles" required></b-form-select>
                     </b-form-group>
                 </form>
@@ -129,7 +136,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, Ref, inject } from 'vue'
-import { Score, Note,Role } from '../../data'
+import { Score, Note, Role } from '../../data'
 import SingleNote from '../components/SingleNote.vue'
 
 const score: Ref<Score> | Ref<undefined> = ref(undefined)
@@ -151,7 +158,7 @@ const keys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D#', '#F', '#G', 'A#', '
 
 // Share Form
 const shareEmail = ref("")
-const shareRole : Ref<Role> = ref(null)
+const shareRole: Ref<Role> = ref(null)
 const roles = ['Creator', 'Editor', 'Viewer']
 
 // props
@@ -272,11 +279,11 @@ function showShareModal() {
     shareModalUp.value = true
 }
 
-async function handleScoreShare(){
+async function handleScoreShare() {
     console.log("🎨: Sharing score...")
     shareModalUp.value = false
 
-    const data = {email:shareEmail.value, role: shareRole.value}
+    const data = { email: shareEmail.value, role: shareRole.value }
 
     const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/newrole",
         {
@@ -291,12 +298,12 @@ async function handleScoreShare(){
     } else {
         console.log("🎨: Sharing score errored ❓")
         alert("Sharing score errored: the user with the provided email is not found.")
-    }  
+    }
 
     resetShareForm()
 }
 
-function resetShareForm(){
+function resetShareForm() {
     shareEmail.value = ""
     shareRole.value = null
 }

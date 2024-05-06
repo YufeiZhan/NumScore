@@ -20,7 +20,7 @@ const passportStrategies = [
 ]
 
 // set up Mongo
-const url = process.env.MONGO_URL || 'mongodb://db'
+const url = process.env.MONGO_URL
 const client = new MongoClient(url)
 let db: Db
 let scores: Collection<Score> // a collection of db
@@ -265,7 +265,7 @@ app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), 
     console.log("💻: Entry isn't found so adding new entry...")
     const pushResult = await users.updateOne(
       { email },
-      { $push: { scores: { scoreId, role } } }
+      { $push: { scores: { scoreId: scoreId as any, role } } }
     );
 
     if (pushResult.matchedCount < 1) { // no matching email
@@ -296,7 +296,7 @@ app.delete("/api/score/:scoreID", checkAuthenticated, checkRole(["user", "admin"
   const scoreId = new ObjectId(req.params.scoreID)
 
   // delete from scores
-  const scoresResult = await scores.deleteOne({ _id: scoreId })
+  const scoresResult = await scores.deleteOne({scoreId})
 
   if (scoresResult.deletedCount < 1) {
     console.log("💻: Nothing gets deleted ❓")
@@ -307,7 +307,7 @@ app.delete("/api/score/:scoreID", checkAuthenticated, checkRole(["user", "admin"
     //delete from all users the scoreId-role pair
     const usersResult = await users.updateMany(
       { "scores.scoreId": scoreId },
-      { $pull: { scores: { scoreId: scoreId } } }
+      { $pull: { scores: { scoreId: scoreId as any } } }
     )
 
     if (usersResult.matchedCount == 0) {

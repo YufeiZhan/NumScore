@@ -42,7 +42,7 @@ export interface Note {
 // }
 
 export const aliceScore1 : Score = {
-  _id: 'Alphabet Song-1', // unique id is score title-_id
+  // _id: 'Alphabet Song-1', // unique id is score title-_id
   title: 'Alphabet Song',
   author: 'Alice', 
   key: 'C',

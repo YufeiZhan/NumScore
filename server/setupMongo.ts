@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb'
 import {aliceScore1} from './data'
 
 // Connection URL
-const url = 'mongodb://db'
+const url = process.env.MONGO_URL
 const client = new MongoClient(url)
 
 
