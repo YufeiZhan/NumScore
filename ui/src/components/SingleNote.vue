@@ -1,5 +1,5 @@
 <template>
-    <b-button squared variant="outline-dark">
+    <b-button squared variant="outline-dark" @click="toggleNote(state[1])" :pressed="state[0]">
         <div v-if="note.pitch >= 0">
             <div v-for="number in (3 - note.pitch)" :key="number" class="hidden-note-deco">·</div>
             <div v-for="number in note.pitch" :key="number" class="note-deco">·</div>
@@ -28,10 +28,22 @@ import { Note } from '../../data'
 // props
 interface Props {
     note?: Note
+    state?: [boolean,number]
 }
 
 // default values for props
 const props = withDefaults(defineProps<Props>(), {
     note: undefined,
+    state: undefined
 })
+
+// events
+const emit = defineEmits<{
+  (e: 'toggleNote', index: number): void
+}>()
+
+function toggleNote(index: number) {
+    console.log(index)
+  emit("toggleNote", index)
+}
 </script>

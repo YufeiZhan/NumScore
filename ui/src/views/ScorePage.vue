@@ -58,8 +58,8 @@
         <!-- Score Notes -->
         <div class="m-5">
             <div v-for="(note, index) in score?.notes" :key="index" style="display: inline-block;">
-                <SingleNote :note="note" class="note" />
-                <b-button v-if="barBehind(index)" class="note" squared variant="outline-dark">
+                <SingleNote :note="note" :state="[noteStates[index],index]" class="note" @toggleNote="toggleNote"/>
+                <b-button v-if="barBehind(index)" class="note" squared disabled variant="outline-dark">
                     <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
                     <span> | </span>
                     <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
@@ -68,7 +68,7 @@
             </div>
 
             <!-- Add New Note-->
-            <div v-if="user?.roles?.includes('user')" class="note">
+            <div v-if="user?.roles?.includes('user')" class="note" >
                 <b-button v-b-modal="'new-note-model'" variant="light">
                     <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
                     <div v-for="number in 2" :key="number" class="hidden-note-deco">-</div>
@@ -143,6 +143,7 @@ const score: Ref<Score> | Ref<undefined> = ref(undefined)
 const showIcons: Ref<boolean> = ref(false)
 const user: Ref<any> = inject("user")!
 const shareModalUp = ref(false)
+const noteStates = ref(new Array(score.value?.notes.length).fill(false))
 
 // Note Form
 const defaultForm = { note: 1, pitch: 0, duration: 1, color: "black" }
@@ -202,6 +203,26 @@ async function refresh() {
 
 onMounted(refresh)
 
+// --------------- Score Notes ---------------
+// submits notes
+async function handleNoteSubmit() {
+    console.log("🎨: Submitting the new note created...")
+    const newNote: Note = { number: form.value.note as any, pitch: form.value.pitch as any, duration: form.value.duration as any, color: form.value.color as any }
+    await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/newnote",
+        {
+            headers: { "Content-Type": "application/json", },
+            method: "PUT",
+            body: JSON.stringify(newNote)
+        })
+    console.log("🎨: new note submitted...")
+    resetForm()
+    refresh()
+}
+
+function resetForm() {
+    form.value = { ...defaultForm }
+}
+
 // decides whether there is a barline behind a specific note at the given index
 function barBehind(index: number): boolean {
     if (index === 0 && score.value?.timeSignatureTop != 1) {
@@ -231,31 +252,13 @@ function durationTill(index: number): number {
     return total;
 }
 
-// toggles toolbox icon
-function toolboxOnClick() {
-    showIcons.value = !showIcons.value
+function toggleNote(index: number){
+    console.log("ScorePage",index,noteStates.value)
+    noteStates.value[index] = ! noteStates.value[index]
+    console.log("ScorePage",index,noteStates.value[index])
+
 }
-
-
-// submits notes
-async function handleNoteSubmit() {
-    console.log("🎨: Submitting the new note created...")
-    const newNote: Note = { number: form.value.note as any, pitch: form.value.pitch as any, duration: form.value.duration as any, color: form.value.color as any }
-    await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/newnote",
-        {
-            headers: { "Content-Type": "application/json", },
-            method: "PUT",
-            body: JSON.stringify(newNote)
-        })
-    console.log("🎨: new note submitted...")
-    resetForm()
-    refresh()
-}
-
-function resetForm() {
-    form.value = { ...defaultForm }
-}
-
+// --------------- Score Config ---------------
 // submits score configuration
 async function handleScoreSubmit() {
     console.log("🎨: Submitting new score configuration...")
@@ -275,6 +278,14 @@ async function handleScoreSubmit() {
     }
 }
 
+
+// --------------- Toolbox ---------------
+function toolboxOnClick() {
+    showIcons.value = !showIcons.value
+}
+
+
+// --------------- Score Sharing ---------------
 function showShareModal() {
     shareModalUp.value = true
 }
