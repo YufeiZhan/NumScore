@@ -258,53 +258,58 @@ function toggleNote(index: number) {
 }
 
 // lower the pitch for selected notes
-window.addEventListener("keydown", () => {
-    noteStates.value.forEach(async (state, index) => {
-        if (state === true && score.value?.notes[index].pitch > -3) { // if selected and deductible
-            const data = { pitch: score.value?.notes[index].pitch - 1 }
-            const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/" + encodeURIComponent(index) + "/pitch",
-                {
-                    headers: { "Content-Type": "application/json", },
-                    method: "PUT",
-                    body: JSON.stringify(data)
-                })
+window.addEventListener("keydown", (event) => {
+    switch (event.key) {
+        case "ArrowDown":
+            noteStates.value.forEach(async (state, index) => {
+                if (state === true && score.value?.notes[index].pitch > -3) { // if selected and deductible
+                    // sync to server
+                    const data = { pitch: score.value?.notes[index].pitch - 1 }
+                    const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/" + encodeURIComponent(index) + "/pitch",
+                        {
+                            headers: { "Content-Type": "application/json", },
+                            method: "PUT",
+                            body: JSON.stringify(data)
+                        })
 
-            if (response.ok) {
-                console.log("🎨: Updating score pitch completes ✅")
-                window.location.reload();
-            } else {
-                console.log("🎨: Updating score pitch errored ❓")
-                alert("Updating score pitch errored.")
-            }
-        }
-    })
+                    if (response.ok) {
+                        console.log("🎨: Updating score pitch completes ✅")
+                        // update frontend on the page
+                        score.value.notes[index].pitch -= 1
+                    } else {
+                        console.log("🎨: Updating score pitch errored ❓")
+                        alert("Updating score pitch errored.")
+                    }
+                }
+            })
+            break;
 
-    // refresh()
-})
+        case "ArrowUp":
+            noteStates.value.forEach(async (state, index) => {
+                if (state === true && score.value?.notes[index].pitch < 3) { // if selected and increasable
+                    // sync to server
+                    const data = { pitch: score.value?.notes[index].pitch + 1 }
+                    const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/" + encodeURIComponent(index) + "/pitch",
+                        {
+                            headers: { "Content-Type": "application/json", },
+                            method: "PUT",
+                            body: JSON.stringify(data)
+                        })
 
-// raise the pitch for selected notes
-window.addEventListener("keyup", () => {
-    noteStates.value.forEach(async (state, index) => {
-        if (state === true && score.value?.notes[index].pitch < 3) { // if selected and increasable
-            const data = { pitch: score.value?.notes[index].pitch + 1 }
-            const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/" + encodeURIComponent(index) + "/pitch",
-                {
-                    headers: { "Content-Type": "application/json", },
-                    method: "PUT",
-                    body: JSON.stringify(data)
-                })
+                    if (response.ok) {
+                        console.log("🎨: Updating score pitch completes ✅")
+                        // update frontend on the page without retreiving/refreshing the page
+                        score.value.notes[index].pitch += 1
+                    } else {
+                        console.log("🎨: Updating score pitch errored ❓")
+                        alert("Updating score pitch errored.")
+                    }
+                }
+            })
+    }
 
-            if (response.ok) {
-                console.log("🎨: Updating score pitch completes ✅")
-                window.location.reload();
-            } else {
-                console.log("🎨: Updating score pitch errored ❓")
-                alert("Updating score pitch errored.")
-            }
-        }
-    })
+    event.preventDefault(); // prevent the default browser behaviors associated with the key
 
-    // refresh()
 })
 
 // --------------- Score Config ---------------
