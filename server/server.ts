@@ -75,6 +75,7 @@ passport.deserializeUser((user, done) => {
   done(null, user)
 })
 
+// ---------------------------- Middlewares ----------------------------
 // authentication middleware
 function checkAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (!req.isAuthenticated()) {
@@ -98,27 +99,18 @@ function checkRole(requiredRoles: string[]) {
   };
 }
 
-// app routes
+// User login
 app.get('/api/login', passport.authenticate(passportStrategies, {
   successReturnToOrRedirect: "/home"
 }))
 
+// User login callback
 app.get('/api/login-callback', passport.authenticate(passportStrategies, {
-  successReturnToOrRedirect: '/home',
+  successReturnToOrRedirect: "http://localhost:8130",
   failureRedirect: '/',
 }))
 
-app.get('/api/user', checkAuthenticated, (req, res) => {
-  console.log("💻: Retrieving user...")
-  if (req.user) {
-    console.log("💻: Rerieved user! ✅")
-    res.json(req.user)
-  } else {
-    console.log("💻: req.user not found ❓")
-    res.json({})
-  }
-})
-
+// User logout
 app.post("/api/logout", (req, res, next) => {
   console.log("💻: Logging out...")
   req.logout((err) => {
@@ -130,6 +122,20 @@ app.post("/api/logout", (req, res, next) => {
   })
 })
 
+// ---------------------------- For Specific User ----------------------------
+// Get the user
+app.get('/api/user', checkAuthenticated, (req, res) => {
+  console.log("💻: Retrieving user...")
+  if (req.user) {
+    console.log("💻: Rerieved user! ✅")
+    res.json(req.user)
+  } else {
+    console.log("💻: req.user not found ❓")
+    res.json({})
+  }
+})
+
+// Retrieve scores for user
 app.get("/api/scores", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Retrieving all scores for the logged in user...")
   const OIDCuser = req.user as any
@@ -163,12 +169,15 @@ app.get("/api/scores", checkAuthenticated, checkRole(["user"]), async (req, res)
   }
 })
 
+// Retrieve scores for admin
 app.get("/api/scores/all", checkAuthenticated, checkRole(["admin"]), async (req, res) => {
   console.log("💻: Retreiving all scores from the database (for admin).")
   const retrievedScores: Score[] = await scores.find({}).toArray()
   res.status(200).json(retrievedScores)
 })
 
+// ---------------------------- For Specific Score ----------------------------
+// Create a new score
 app.get("/api/score/new", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Creating a new score at the backend...")
   const newScore: Score = {
@@ -190,6 +199,7 @@ app.get("/api/score/new", checkAuthenticated, checkRole(["user"]), async (req, r
   }
 })
 
+// Retrieve a score
 app.get("/api/score/:scoreId", checkAuthenticated, async (req, res) => {
   console.log("💻: Retrieving a particular score of given score id at the backend...", req.params.scoreId)
   const score: Score | null = await scores.findOne(new ObjectId(req.params.scoreId))
@@ -202,29 +212,7 @@ app.get("/api/score/:scoreId", checkAuthenticated, async (req, res) => {
   }
 })
 
-app.put("/api/score/:scoreId/newnote", checkAuthenticated, checkRole(["user"]), async (req, res) => {
-  console.log("💻: Add a new note...")
-  const note: Note = req.body
-
-  const result = await scores.updateOne(
-    { _id: new ObjectId(req.params.scoreId) as any },
-    { $push: { notes: note } }
-  )
-
-  if (result.matchedCount < 1) { // didn't find the score
-    console.log("💻: No such score is found so no update. ❓")
-    res.status(500).json({ message: "No score with the specified id is found." })
-  }
-
-  if (result.modifiedCount == 1) {
-    console.log("💻: Adding a new note completed! ✅")
-    res.status(200).json({ status: "ok" })
-  } else {
-    console.log("💻: Score found but no changes. ✅")
-    res.status(200).json({ message: "Score found but nothing get modified." })
-  }
-})
-
+// Update a score's setting
 app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Updating the score's setting...")
   const score = req.body
@@ -248,12 +236,12 @@ app.put("/api/score/:scoreId", checkAuthenticated, checkRole(["user"]), async (r
   }
 })
 
+// Add role to a score
 app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), async (req, res) => {
   console.log("💻: Sharing the score to other users...")
   const scoreId = new ObjectId(req.params.scoreId)
   const email = req.body.email
   const role = req.body.role
-  console.log(email)
 
   // see whether the user already has a role associated with the score
   const updateResult = await users.updateOne(
@@ -277,7 +265,6 @@ app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), 
         res.status(200).json({ status: "ok" })
       } // push action always adds a new entry so no else here
     }
-
   } else { // already an entry
     if (updateResult.modifiedCount == 1) {
       console.log("💻: Role of the pre-existed user changed! ✅")
@@ -289,8 +276,7 @@ app.put("/api/score/:scoreId/newrole", checkAuthenticated, checkRole(["user"]), 
   }
 })
 
-
-
+// Delete a score
 app.delete("/api/score/:scoreID", checkAuthenticated, checkRole(["user", "admin"]), async (req, res) => {
   console.log("💻: Deleting the score from database...")
   const scoreId = new ObjectId(req.params.scoreID)
@@ -326,6 +312,57 @@ app.delete("/api/score/:scoreID", checkAuthenticated, checkRole(["user", "admin"
   }
 })
 
+// ---------------------------- For Specific Note ----------------------------
+// Add a new note
+app.put("/api/score/:scoreId/newnote", checkAuthenticated, checkRole(["user"]), async (req, res) => {
+  console.log("💻: Add a new note...")
+  const note: Note = req.body
+
+  const result = await scores.updateOne(
+    { _id: new ObjectId(req.params.scoreId) as any },
+    { $push: { notes: note } }
+  )
+
+  if (result.matchedCount < 1) { // didn't find the score
+    console.log("💻: No such score is found so no update. ❓")
+    res.status(500).json({ message: "No score with the specified id is found." })
+  }
+
+  if (result.modifiedCount == 1) {
+    console.log("💻: Adding a new note completed! ✅")
+    res.status(200).json({ status: "ok" })
+  } else {
+    console.log("💻: Score found but no changes. ✅")
+    res.status(200).json({ message: "Score found but nothing get modified." })
+  }
+})
+
+// Update a note pitch
+app.put("/api/score/:scoreId/:noteIndex/pitch", checkAuthenticated, checkRole(["user"]), async (req, res) => {
+  console.log("💻Updating a note pitch...")
+  const newPitch: number = req.body.pitch
+
+  const result = await scores.updateOne(
+    { _id: new ObjectId(req.params.scoreId) as any },
+    { $set: { [`notes.${req.params.noteIndex}.pitch`]: newPitch, } }
+  )
+
+  if (result.matchedCount < 1) { // didn't find the score
+    console.log("💻: No such score is found so no update. ❓")
+    res.status(500).json({ message: "No score with the specified id is found." })
+  }
+
+  if (result.modifiedCount == 1) {
+    console.log("💻: Updating a new note's pitch completed! ✅")
+    res.status(200).json({ status: "ok" })
+  } else {
+    console.log("💻: Score found but no changes. ✅")
+    res.status(200).json({ message: "Score found but nothing get modified." })
+  }
+})
+
+
+// ------------------------ For Database/Server Connection ------------------------
 // connect to Mongo and OpenID, and start the server
 client.connect().then(async () => {
   console.log('💻: Connected successfully to MongoDB')

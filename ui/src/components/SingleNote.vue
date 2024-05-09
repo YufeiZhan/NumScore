@@ -43,7 +43,6 @@ const emit = defineEmits<{
 }>()
 
 function toggleNote(index: number) {
-    console.log(index)
   emit("toggleNote", index)
 }
 </script>

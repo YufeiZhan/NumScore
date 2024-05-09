@@ -58,7 +58,7 @@
         <!-- Score Notes -->
         <div class="m-5">
             <div v-for="(note, index) in score?.notes" :key="index" style="display: inline-block;">
-                <SingleNote :note="note" :state="[noteStates[index],index]" class="note" @toggleNote="toggleNote"/>
+                <SingleNote :note="note" :state="[noteStates[index], index]" class="note" @toggleNote="toggleNote" />
                 <b-button v-if="barBehind(index)" class="note" squared disabled variant="outline-dark">
                     <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
                     <span> | </span>
@@ -68,7 +68,7 @@
             </div>
 
             <!-- Add New Note-->
-            <div v-if="user?.roles?.includes('user')" class="note" >
+            <div v-if="user?.roles?.includes('user')" class="note">
                 <b-button v-b-modal="'new-note-model'" variant="light">
                     <div v-for="number in 3" :key="number" class="hidden-note-deco">·</div>
                     <div v-for="number in 2" :key="number" class="hidden-note-deco">-</div>
@@ -252,12 +252,37 @@ function durationTill(index: number): number {
     return total;
 }
 
-function toggleNote(index: number){
-    console.log("ScorePage",index,noteStates.value)
-    noteStates.value[index] = ! noteStates.value[index]
-    console.log("ScorePage",index,noteStates.value[index])
-
+// toggle note status
+function toggleNote(index: number) {
+    noteStates.value[index] = !noteStates.value[index]
 }
+
+// Lower the pitch for notes
+window.addEventListener("keydown", () => {
+    noteStates.value.forEach(async (state, index) => {
+        if (state === true && score.value?.notes[index].pitch > -3) { // if selected and deductible
+            const data = { pitch: score.value?.notes[index].pitch - 1 }
+            const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/" + encodeURIComponent(index) + "/pitch",
+                {
+                    headers: { "Content-Type": "application/json", },
+                    method: "PUT",
+                    body: JSON.stringify(data)
+                })
+
+            if (response.ok) {
+                console.log("🎨: Updating score pitch completes ✅")
+                window.location.reload();
+            } else {
+                console.log("🎨: Updating score pitch errored ❓")
+                alert("Updating score pitch errored.")
+            }
+        }
+    })
+
+    // refresh()
+})
+
+
 // --------------- Score Config ---------------
 // submits score configuration
 async function handleScoreSubmit() {
