@@ -257,7 +257,7 @@ function toggleNote(index: number) {
     noteStates.value[index] = !noteStates.value[index]
 }
 
-// Lower the pitch for notes
+// lower the pitch for selected notes
 window.addEventListener("keydown", () => {
     noteStates.value.forEach(async (state, index) => {
         if (state === true && score.value?.notes[index].pitch > -3) { // if selected and deductible
@@ -282,6 +282,30 @@ window.addEventListener("keydown", () => {
     // refresh()
 })
 
+// raise the pitch for selected notes
+window.addEventListener("keyup", () => {
+    noteStates.value.forEach(async (state, index) => {
+        if (state === true && score.value?.notes[index].pitch < 3) { // if selected and increasable
+            const data = { pitch: score.value?.notes[index].pitch + 1 }
+            const response = await fetch("/api/score/" + encodeURIComponent(props.scoreId as any) + "/" + encodeURIComponent(index) + "/pitch",
+                {
+                    headers: { "Content-Type": "application/json", },
+                    method: "PUT",
+                    body: JSON.stringify(data)
+                })
+
+            if (response.ok) {
+                console.log("🎨: Updating score pitch completes ✅")
+                window.location.reload();
+            } else {
+                console.log("🎨: Updating score pitch errored ❓")
+                alert("Updating score pitch errored.")
+            }
+        }
+    })
+
+    // refresh()
+})
 
 // --------------- Score Config ---------------
 // submits score configuration
