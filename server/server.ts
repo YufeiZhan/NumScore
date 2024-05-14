@@ -361,6 +361,30 @@ app.put("/api/score/:scoreId/:noteIndex/pitch", checkAuthenticated, checkRole(["
   }
 })
 
+// Update a note number
+app.put("/api/score/:scoreId/:noteIndex/number", checkAuthenticated, checkRole(["user"]), async (req, res) => {
+  console.log("💻Updating a note number...")
+  const newNumber: number = req.body.number
+
+  const result = await scores.updateOne(
+    { _id: new ObjectId(req.params.scoreId) as any },
+    { $set: { [`notes.${req.params.noteIndex}.number`]: newNumber, } }
+  )
+
+  if (result.matchedCount < 1) { // didn't find the score
+    console.log("💻: No such score is found so no update. ❓")
+    res.status(500).json({ message: "No score with the specified id is found." })
+  }
+
+  if (result.modifiedCount == 1) {
+    console.log("💻: Updating a new note's number completed! ✅")
+    res.status(200).json({ status: "ok" })
+  } else {
+    console.log("💻: Score found but no changes. ✅")
+    res.status(200).json({ message: "Score found but nothing get modified." })
+  }
+})
+
 
 // ------------------------ For Database/Server Connection ------------------------
 // connect to Mongo and OpenID, and start the server

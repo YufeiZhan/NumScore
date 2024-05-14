@@ -260,7 +260,7 @@ function toggleNote(index: number) {
 // lower the pitch for selected notes
 window.addEventListener("keydown", (event) => {
     switch (event.key) {
-        case "ArrowDown":
+        case "ArrowDown": // lower down the pitch
             noteStates.value.forEach(async (state, index) => {
                 if (state === true && score.value?.notes[index].pitch > -3) { // if selected and deductible
                     // sync to server
@@ -284,7 +284,7 @@ window.addEventListener("keydown", (event) => {
             })
             break;
 
-        case "ArrowUp":
+        case "ArrowUp": // raise the pitch
             noteStates.value.forEach(async (state, index) => {
                 if (state === true && score.value?.notes[index].pitch < 3) { // if selected and increasable
                     // sync to server
@@ -306,10 +306,12 @@ window.addEventListener("keydown", (event) => {
                     }
                 }
             })
+        
+            case "Escape": // unselect all notes
+                noteStates.value = new Array(score.value?.notes.length).fill(false)
     }
 
     event.preventDefault(); // prevent the default browser behaviors associated with the key
-
 })
 
 // --------------- Score Config ---------------
@@ -372,4 +374,9 @@ function resetShareForm() {
     shareEmail.value = ""
     shareRole.value = null
 }
+
+
+// --------------- Helper Functions ---------------
+
+
 </script>
