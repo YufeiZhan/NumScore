@@ -24,8 +24,8 @@
   ![LaptopScoreConf](Screenshots/laptop_score_conf.png)
 
 ### Responsive Web Design on Mobile
-  ![MobileHome](Screenshots/mobile_home.png){width=200 height=450}
-  ![MobileConf](Screenshots/mobile_conf.png){width=200 height=450}
+  ![MobileHome](Screenshots/mobile_home.png = 100x350)
+  ![MobileConf](Screenshots/mobile_conf.png = 100x350)
 
 ## Usage
 1. Clone the repo
