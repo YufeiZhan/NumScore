@@ -8,6 +8,25 @@
 ## Demo
 [Demo](https://duke.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4ba5ae54-14a5-4a2f-89d1-b162004113a7)
 
+## Dev Role
+- Frontend & Backend: Yufei (Selina) Zhan
+- CI/CD & Deplolyment: Honggang (Peter) Min
+
+## Feactures
+
+### Home Page (Add Score, Delete Score)
+  ![LaptopHome](Screenshots/laptop_home.png)
+
+### Score Page (CRUD Note)
+  ![LaptopScore](Screenshots/laptop_score.png)
+
+### Score Configuration 
+  ![LaptopScoreConf](Screenshots/laptop_score_conf.png)
+
+### Responsive Web Design on Mobile
+  ![MobileHome](Screenshots/mobile_home.png)
+  ![MobileConf](Screenshots/mobile_conf.png)
+
 ## Usage
 1. Clone the repo
 2. Inside the **/server** folder, run `docker build -t numscore-server .`
@@ -32,10 +51,6 @@ Specifically for a particular score, the user can be either "creator", "editor" 
 ## Materials
 - Proposal Slide: https://docs.google.com/presentation/d/1BCnQpx_AVTnucI1mn_eJB0B65a-GHJRz5DY1_JtGt2w/edit?usp=sharing
 - Figma Design: https://www.figma.com/file/2oxmgxjv9F0Rgv09jFzdrz/Numbered-Music-Score-Project?type=design&node-id=0%3A1&mode=design&t=IG5rhLHNdycjPD7H-1
-
-## Dev Role
-- Frontend: Yufei (Selina) Zhan
-- Backend: Honggang (Peter) Min
 
 ## Todo
 - [x] Tech stack: responsive Vue.router frontend, Node backend, MongoDB database
