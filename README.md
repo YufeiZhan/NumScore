@@ -5,7 +5,7 @@
 2. Move into the **/server** folder, install all packages using `npm install` and set up using `npm run setup`, then run using `npm run start` as normal user or `GROUP=numscoreadmin npm run start` as **admin**
 3. Move into the **/ui** folder and install all packages using `npm install` and run using `npm run dev`
 4. Test in browser using `localhost:8130` rather than `127.0.0.1:8130` -->
-## Demo
+
 [Demo](https://duke.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=4ba5ae54-14a5-4a2f-89d1-b162004113a7)
 
 ## Dev Role
